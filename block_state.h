@@ -21,14 +21,6 @@ void block_update(Block& b, GameState& g) {
             b.y_vel = 0;
         }
     }
-    // check mouse x and y are inside the block
-    if (mouse_down(LEFT_BUTTON)) {
-        if (mouse_x() >= b.pos.x && mouse_x() <= b.pos.x + b.width &&
-            mouse_y() >= b.pos.y && mouse_y() <= b.pos.y + b.height) {
-            b.active = false;
-        }
-    }
-
 }
 
 void block_draw(Block& b) {
