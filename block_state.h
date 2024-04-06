@@ -26,6 +26,7 @@ void block_update(Block& b, GameState& g) {
 void block_draw(Block& b) {
     if (b.active) {
         fill_rectangle(b.clr, b.pos.x, b.pos.y, b.width, b.height);
+        fill_rectangle(clr_background, b.pos.x + 3, b.pos.y + 3, b.width - 6, b.height - 6);
     }
 }
 

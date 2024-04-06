@@ -15,7 +15,7 @@ struct Particle;
 
 using Row = std::vector<std::unique_ptr<Block>>;
 using Grid = std::vector<Row>;
-using PowerUp = bool (*)(Bullet& bullet, ivec2 grid_pos, GameState& game);
+using BulletEffect = bool (*)(Bullet& bullet, ivec2 grid_pos, GameState& game);
 using PatternFunc = std::function<Grid(int, int)>;
 
 struct ivec2 {
@@ -49,9 +49,12 @@ struct Bullet {
     vector_2d vel;
     int size;
     color clr;
-    PowerUp powerup;
+    BulletEffect effect;
     bool active;
     std::vector<Particle> trail;
+    int ttl_type; // 0 = none, 1 = # hits, 2 = # updates
+    int ttl;
+    int max_ttl;
 };
 
 struct Block {

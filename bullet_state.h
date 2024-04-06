@@ -5,11 +5,12 @@
 #include <vector>
 #include <algorithm>
 #include "values.h"
-#include "powerups.h"
+#include "bullet_effects.h"
 #include "particle_state.h"
 
 
 void bullet_update(Bullet& b, GameState& g);
+void bullet_destroy(Bullet& b, GameState& g);
 void bullet_draw(Bullet& b);
 void bullet_check_wall_collision(Bullet& b);
 void bullet_check_block_collision(Bullet& b, GameState& g);
@@ -25,6 +26,9 @@ void draw_bullets(GameState& g);
 bool bullet_standard(Bullet& b, ivec2 grid_pos, GameState& g);
 bool bullet_explosion(Bullet& b, ivec2 grid_pos, GameState& g);
 
+// util
+Bullet roll_bullet();
+
 
 // implementation
 void bullet_update(Bullet& b, GameState& g) {
@@ -33,6 +37,15 @@ void bullet_update(Bullet& b, GameState& g) {
         b.active = false;
         b.trail.clear();
         return;
+    }
+
+    if (b.ttl_type > 0) {
+        if (b.ttl_type == 2) --b.ttl;
+        if (b.ttl <= 0) {
+            b.active = false;
+            b.trail.clear();
+            return;
+        }
     }
 
     b.pos.x += b.vel.x;
@@ -47,6 +60,13 @@ void bullet_update(Bullet& b, GameState& g) {
         b.trail.push_back(new_particle(b.pos, {-b.vel.x * trail_limiter + xoff, -b.vel.y * trail_limiter + yoff}, b.clr, rng.randomInt(1, 3), 30));
     }
     trail_update(b);
+}
+
+void bullet_destroy(Bullet& b, GameState& g) {
+    for (int i = 0; i < 30; ++i) {
+        vector_2d particle_vel = {rng.randomFloat(-4.0f, 4.0f), rng.randomFloat(-4.0f, 4.0f)};
+        g.particles.push_back(new_particle(b.pos, particle_vel, b.clr, rng.randomInt(1,2), 60));
+    }
 }
 
 void bullet_draw(Bullet& b) {
@@ -100,27 +120,19 @@ void bullet_check_block_collision(Bullet& b, GameState& g) {
                     float overlapTop = (block->pos.y + block->height) - b.pos.y;
                     float overlapBottom = (b.pos.y + b.size) - block->pos.y;
 
-                    // block powerup
+                    // block effect
                     if (rng.chance(BLOCK_POWERUP_CHANCE)) {
-                        PowerUp powerup;
-                        color clr;
-                        bool non_standard = rng.chance(0.05);
-                        if (!non_standard) {
-                            powerup = bullet_standard;
-                            clr = clr_bullet_standard;
-                        } else {
-                            bool explode = rng.chance(0.5);
-                            powerup = explode ? bullet_explosion : bullet_acid;
-                            clr = explode ? clr_bullet_explosion : clr_bullet_acid;
-                        }
-                        g.bullets.push_back(new_bullet(block->pos, {rng.randomFloat(-3.0f, 3.0f), -3.0f}, 3, clr, powerup));
-                        for (int i = 0; i < 5; ++i) {
+                        Bullet nb = roll_bullet();
+                        nb.pos = block->pos;
+                        g.bullets.push_back(nb);
+                        for (int i = 0; i < 15; ++i) {
                             vector_2d particle_vel = {rng.randomFloat(-2.0f, 2.0f), rng.randomFloat(-2.0f, 2.0f)};
-                            g.particles.push_back(new_particle(block->pos, particle_vel, clr, 2, 60));
+                            g.particles.push_back(new_particle(block->pos, particle_vel, nb.clr, 2, 60));
                         }
                     }
 
-                    bool should_vel = b.powerup(b, block->grid_pos, g);
+                    if (b.ttl_type == 1) --b.ttl;
+                    bool should_vel = b.effect(b, block->grid_pos, g);
                     if (!should_vel) {
                         return;
                     }
@@ -149,6 +161,9 @@ void bullet_check_paddle_collision(Bullet& b, GameState& g) {
 void update_bullets(GameState& g) {
     for (auto& b : g.bullets) {
         bullet_update(b, g);
+        if (!b.active) {
+            bullet_destroy(b, g);
+        }
     }
     g.bullets.erase(remove_if(g.bullets.begin(), g.bullets.end(), [](const Bullet& b) { return !b.active; }), g.bullets.end());
 }
@@ -159,3 +174,18 @@ void draw_bullets(GameState& g) {
     }
 }
 
+Bullet roll_bullet() {
+    BulletEffect effect = bullet_standard;
+    color clr = clr_bullet_standard;
+    int ttl_type = 0;
+    int ttl = 0;
+    bool non_standard = rng.chance(0.05);
+    if (non_standard) {
+        bool explode = rng.chance(0.5);
+        effect = explode ? bullet_explosion : bullet_acid;
+        clr = explode ? clr_bullet_explosion : clr_bullet_acid;
+        ttl_type = explode ? 1 : 2;
+        ttl = explode ? 3 : 700;
+    }
+    return new_bullet({50,50}, {0, -3}, 3, clr, effect, ttl_type, ttl);
+}
