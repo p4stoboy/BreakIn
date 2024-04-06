@@ -7,7 +7,6 @@
 #include "values.h"
 #include "powerups.h"
 #include "particle_state.h"
-#include <iostream>
 
 
 void bullet_update(Bullet& b, GameState& g);
@@ -29,6 +28,13 @@ bool bullet_explosion(Bullet& b, ivec2 grid_pos, GameState& g);
 
 // implementation
 void bullet_update(Bullet& b, GameState& g) {
+
+    if (b.pos.y > SCREEN_HEIGHT) {
+        b.active = false;
+        b.trail.clear();
+        return;
+    }
+
     b.pos.x += b.vel.x;
     b.pos.y += b.vel.y;
     bullet_check_wall_collision(b);
@@ -41,12 +47,6 @@ void bullet_update(Bullet& b, GameState& g) {
         b.trail.push_back(new_particle(b.pos, {-b.vel.x * trail_limiter + xoff, -b.vel.y * trail_limiter + yoff}, b.clr, rng.randomInt(1, 3), 30));
     }
     trail_update(b);
-
-    if (b.pos.y > SCREEN_HEIGHT) {
-        b.active = false;
-        b.trail.clear();
-        return;
-    }
 }
 
 void bullet_draw(Bullet& b) {
@@ -80,6 +80,7 @@ void bullet_check_wall_collision(Bullet& b) {
         b.vel.x *= -1.;
     }
     if (b.pos.y < 0 + b.size) {
+        b.pos.y = 0 + b.size;
         b.vel.y *= -1.;
     }
 }
@@ -101,10 +102,21 @@ void bullet_check_block_collision(Bullet& b, GameState& g) {
 
                     // block powerup
                     if (rng.chance(BLOCK_POWERUP_CHANCE)) {
-                        g.bullets.push_back(new_bullet(block->pos, {rng.randomFloat(-3.0f, 3.0f), -3.0f}, 3, clr_bullet_acid, bullet_explosion));
+                        PowerUp powerup;
+                        color clr;
+                        bool non_standard = rng.chance(0.05);
+                        if (!non_standard) {
+                            powerup = bullet_standard;
+                            clr = clr_bullet_standard;
+                        } else {
+                            bool explode = rng.chance(0.5);
+                            powerup = explode ? bullet_explosion : bullet_acid;
+                            clr = explode ? clr_bullet_explosion : clr_bullet_acid;
+                        }
+                        g.bullets.push_back(new_bullet(block->pos, {rng.randomFloat(-3.0f, 3.0f), -3.0f}, 3, clr, powerup));
                         for (int i = 0; i < 5; ++i) {
                             vector_2d particle_vel = {rng.randomFloat(-2.0f, 2.0f), rng.randomFloat(-2.0f, 2.0f)};
-                            g.particles.push_back(new_particle(block->pos, particle_vel, clr_bullet_acid, 2, 60));
+                            g.particles.push_back(new_particle(block->pos, particle_vel, clr, 2, 60));
                         }
                     }
 

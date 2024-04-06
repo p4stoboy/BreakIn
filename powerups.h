@@ -25,3 +25,7 @@ bool bullet_explosion(Bullet& b, ivec2 grid_pos, GameState& game) {
     }
     return true;
 }
+
+bool bullet_acid(Bullet& b, ivec2 grid_pos, GameState& game) {
+    return false;
+}

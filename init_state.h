@@ -14,6 +14,7 @@ Block new_block(point_2d pos, point_2d target_pos, ivec2 grid_pos, int width, in
 
 GameState new_game_state() {
     GameState game;
+    game.score = 0;
     game.status = PLAYING;
     game.terrain;
     game.paddle = new_paddle();
@@ -23,6 +24,7 @@ GameState new_game_state() {
 }
 
 void reset_game_state(GameState& game) {
+    game.score = 0;
     game.status = PLAYING;
     game.terrain.clear();
     game.paddle = new_paddle();

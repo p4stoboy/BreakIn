@@ -17,12 +17,13 @@ int main()
         clear_screen(COLOR_BLACK);
         fill_rectangle(clr_background, SCREEN_START, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
         if (game.status == PLAYING) {
-
+            // draw score top left in large text
+            draw_text("score: " + std::to_string(game.score), COLOR_WHITE, 20, 20, option_to_screen());
             // DEBUG
             if (mouse_clicked(MOUSE_X1_BUTTON)) {
                 game.bullets.push_back(new_bullet({static_cast<double>(rng.randomInt(SCREEN_START, SCREEN_END)), static_cast<double>(SCREEN_HEIGHT-100)}, {3, -3}, 3, clr_bullet_standard, bullet_standard));
             } else if (mouse_clicked(MOUSE_X2_BUTTON)) {
-                game.bullets.push_back(new_bullet({static_cast<double>(rng.randomInt(SCREEN_START, SCREEN_END)), static_cast<double>(SCREEN_HEIGHT-100)}, {3, -3}, 3, clr_bullet_acid, bullet_explosion));
+                game.bullets.push_back(new_bullet({static_cast<double>(rng.randomInt(SCREEN_START, SCREEN_END)), static_cast<double>(SCREEN_HEIGHT-100)}, {3, -3}, 3, clr_bullet_acid, bullet_acid));
             }
             // END DEBUG
 

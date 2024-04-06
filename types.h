@@ -67,6 +67,7 @@ struct Block {
 
 struct GameState {
     GameStatus status;
+    int score;
     Grid terrain;
     std::vector<Bullet> bullets;
     std::vector<Particle> particles;
