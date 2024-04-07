@@ -68,6 +68,15 @@ struct Block {
     float y_vel;
 };
 
+struct PowerUp {
+    point_2d pos;
+    vector_2d vel;
+    int size;
+    color clr;
+    bool active;
+    std::vector<Particle> trail;
+};
+
 struct GameState {
     GameStatus status;
     int score;

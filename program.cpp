@@ -1,9 +1,12 @@
-#include "types.h"
-#include "splashkit.h"
 #include "values.h"
-#include "init_state.h"
-#include "bullet_state.h"
-#include "global_state.h"
+#include "splashkit.h"
+#include "types.h"
+#include "state_management.h"
+#include "state_init.h"
+#include "util.h"
+#include "terrain_patterns.h"
+#include "bullet_effects.h"
+
 
 int main()
 {
@@ -14,7 +17,7 @@ int main()
     while (!quit_requested())
     {
         process_events();
-        clear_screen(COLOR_BLACK);
+        clear_screen(color_from_hex("#F7CA8B"));
         fill_rectangle(clr_background, SCREEN_START, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
         if (game.status == PLAYING) {
             // draw score top left in large text

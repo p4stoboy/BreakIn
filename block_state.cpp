@@ -1,12 +1,6 @@
-#pragma once
-
-#include "splashkit.h"
-#include "types.h"
-#include "init_state.h"
-
-void block_update(Block& b, GameState& g);
-void block_draw(Block& b);
-void block_destroy(Block& b, GameState& g);
+#include "values.h"
+#include "state_management.h"
+#include "state_init.h"
 
 void block_update(Block& b, GameState& g) {
     if (!b.active) {
@@ -26,7 +20,7 @@ void block_update(Block& b, GameState& g) {
 void block_draw(Block& b) {
     if (b.active) {
         fill_rectangle(b.clr, b.pos.x, b.pos.y, b.width, b.height);
-        fill_rectangle(clr_background, b.pos.x + 3, b.pos.y + 3, b.width - 6, b.height - 6);
+//        fill_rectangle(clr_background, b.pos.x + 3, b.pos.y + 3, b.width - 6, b.height - 6);
     }
 }
 

@@ -1,14 +1,7 @@
-#pragma once
-
+#include "state_management.h"
 #include "splashkit.h"
 #include <algorithm>
-#include "types.h"
 
-void particle_update(Particle& p);
-void particle_draw(Particle& p);
-
-void update_particles(GameState& g);
-void draw_particles(GameState& g);
 
 void particle_update(Particle& p) {
     p.vel.y += 0.1;
@@ -34,8 +27,8 @@ void update_particles(GameState& g) {
 
     // Remove dead particles
     g.particles.erase(std::remove_if(g.particles.begin(), g.particles.end(),
-                                   [](const Particle& p) { return p.ttl <= 0; }),
-                    g.particles.end());
+                                     [](const Particle& p) { return p.ttl <= 0; }),
+                      g.particles.end());
 }
 
 void draw_particles(GameState& g) {
@@ -43,4 +36,3 @@ void draw_particles(GameState& g) {
         particle_draw(p);
     }
 }
-

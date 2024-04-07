@@ -1,36 +1,11 @@
-#pragma once
-
-#include "types.h"
-#include "splashkit.h"
-#include <vector>
-#include <algorithm>
 #include "values.h"
+#include "state_management.h"
+#include "state_init.h"
+#include "splashkit.h"
 #include "bullet_effects.h"
-#include "particle_state.h"
+#include "util.h"
 
 
-void bullet_update(Bullet& b, GameState& g);
-void bullet_destroy(Bullet& b, GameState& g);
-void bullet_draw(Bullet& b);
-void bullet_check_wall_collision(Bullet& b);
-void bullet_check_block_collision(Bullet& b, GameState& g);
-void bullet_check_paddle_collision(Bullet& b, GameState& g);
-void trail_update(Bullet& b);
-void trail_draw(Bullet& b);
-
-// batch functions
-void update_bullets(GameState& g);
-void draw_bullets(GameState& g);
-
-// bullet type functions
-bool bullet_standard(Bullet& b, ivec2 grid_pos, GameState& g);
-bool bullet_explosion(Bullet& b, ivec2 grid_pos, GameState& g);
-
-// util
-Bullet roll_bullet();
-
-
-// implementation
 void bullet_update(Bullet& b, GameState& g) {
 
     if (b.pos.y > SCREEN_HEIGHT) {
@@ -63,7 +38,7 @@ void bullet_update(Bullet& b, GameState& g) {
 }
 
 void bullet_destroy(Bullet& b, GameState& g) {
-    for (int i = 0; i < 30; ++i) {
+    for (int i = 0; i < 60; ++i) {
         vector_2d particle_vel = {rng.randomFloat(-4.0f, 4.0f), rng.randomFloat(-4.0f, 4.0f)};
         g.particles.push_back(new_particle(b.pos, particle_vel, b.clr, rng.randomInt(1,2), 60));
     }
@@ -172,20 +147,4 @@ void draw_bullets(GameState& g) {
     for (auto& b : g.bullets) {
         bullet_draw(b);
     }
-}
-
-Bullet roll_bullet() {
-    BulletEffect effect = bullet_standard;
-    color clr = clr_bullet_standard;
-    int ttl_type = 0;
-    int ttl = 0;
-    bool non_standard = rng.chance(0.05);
-    if (non_standard) {
-        bool explode = rng.chance(0.5);
-        effect = explode ? bullet_explosion : bullet_acid;
-        clr = explode ? clr_bullet_explosion : clr_bullet_acid;
-        ttl_type = explode ? 1 : 2;
-        ttl = explode ? 3 : 700;
-    }
-    return new_bullet({50,50}, {0, -3}, 3, clr, effect, ttl_type, ttl);
 }

@@ -1,10 +1,4 @@
-#pragma once
-
-#include "types.h"
-#include "particle_state.h"
-#include "terrain_state.h"
-#include "paddle_state.h"
-#include "bullet_state.h"
+#include "state_management.h"
 
 void update_global_state(GameState& g) {
     update_particles(g);

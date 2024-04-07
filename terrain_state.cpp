@@ -1,22 +1,8 @@
-#pragma once
-
-#include "types.h"
-#include <functional>
-#include <stack>
-#include <vector>
-#include <memory>
-#include "values.h"
-#include "block_state.h"
+#include "state_management.h"
 #include "terrain_patterns.h"
-
-
-int count_non_empty_rows(GameState& g);
-void shift_rows_down(GameState& g, int num_rows_to_shift);
-void add_new_chunk(GameState& g, int num_rows, std::function<Grid(int, int)> pattern_func);
-void update_terrain(GameState& g);
-void draw_terrain(GameState& g);
-void deactivate_disconnected_clusters(GameState& g);
-void dfs_mark_reachable(GameState& g, int row, int col, std::vector<std::vector<bool>>& visited);
+#include "values.h"
+#include <stack>
+#include "util.h"
 
 
 int count_non_empty_rows(GameState& g) {
@@ -168,4 +154,3 @@ void deactivate_disconnected_clusters(GameState& g) {
         }
     }
 }
-
