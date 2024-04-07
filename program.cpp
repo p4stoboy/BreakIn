@@ -17,7 +17,8 @@ int main()
     while (!quit_requested())
     {
         process_events();
-        clear_screen(color_from_hex("#F7CA8B"));
+        clear_screen(color_from_hex("#000000"));
+        fill_rectangle(color_from_hex("#FBF6E0"), SCREEN_START - 3, 0, SCREEN_WIDTH + 6, SCREEN_HEIGHT - 3);
         fill_rectangle(clr_background, SCREEN_START, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
         if (game.status == PLAYING) {
             // draw score top left in large text

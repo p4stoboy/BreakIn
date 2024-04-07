@@ -70,7 +70,7 @@ void update_terrain(GameState& g) {
         int num_rows_to_shift = NUM_ROWS - non_empty_rows;
 
         if (num_rows_to_shift > 0) {
-            PatternFunc pattern_func = choose({grid_pattern, sine_pattern});
+            PatternFunc pattern_func = choose({sine_landscape, grid_pattern, sine_pattern, circle_lattice_pattern}); //
             shift_rows_down(g, num_rows_to_shift);
             add_new_chunk(g, num_rows_to_shift, pattern_func);
         }

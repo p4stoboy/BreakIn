@@ -18,6 +18,8 @@ extern int NUM_COLS;
 extern int BLOCK_WIDTH;
 extern int BLOCK_HEIGHT;
 extern float BLOCK_POWERUP_CHANCE;
+extern int MAX_PADDLE_WIDTH;
+extern int MIN_PADDLE_WIDTH;
 
 // screen shake
 extern int SSX;
