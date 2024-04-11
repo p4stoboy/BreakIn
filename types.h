@@ -8,14 +8,14 @@
 struct ivec2;
 struct GameState;
 struct Paddle;
-struct Bullet;
+struct Ball;
 struct Block;
 struct Particle;
 
 
 using Row = std::vector<std::unique_ptr<Block>>;
 using Grid = std::vector<Row>;
-using BulletEffect = bool (*)(Bullet& bullet, ivec2 grid_pos, GameState& game);
+using BallEffect = bool (*)(Ball& ball, ivec2 grid_pos, GameState& game);
 using PatternFunc = std::function<Grid(int, int)>;
 
 struct ivec2 {
@@ -44,12 +44,12 @@ struct Particle {
     int original_size;
 };
 
-struct Bullet {
+struct Ball {
     point_2d pos;
     vector_2d vel;
     int size;
     color clr;
-    BulletEffect effect;
+    BallEffect effect;
     bool active;
     std::vector<Particle> trail;
     int ttl_type; // 0 = none, 1 = # hits, 2 = # updates
@@ -81,7 +81,7 @@ struct GameState {
     GameStatus status;
     int score;
     Grid terrain;
-    std::vector<Bullet> bullets;
+    std::vector<Ball> balls;
     std::vector<Particle> particles;
     Paddle paddle;
 };

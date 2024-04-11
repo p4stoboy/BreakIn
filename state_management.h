@@ -15,17 +15,17 @@ void block_destroy(Block& b, GameState& g);
 
 
 //BULLET
-void bullet_update(Bullet& b, GameState& g);
-void bullet_destroy(Bullet& b, GameState& g);
-void bullet_draw(Bullet& b);
-void bullet_check_wall_collision(Bullet& b);
-void bullet_check_block_collision(Bullet& b, GameState& g);
-void bullet_check_paddle_collision(Bullet& b, GameState& g);
-void trail_update(Bullet& b);
-void trail_draw(Bullet& b);
+void ball_update(Ball& b, GameState& g);
+void ball_destroy(Ball& b, GameState& g);
+void ball_draw(Ball& b);
+void ball_check_wall_collision(Ball& b);
+void ball_check_block_collision(Ball& b, GameState& g);
+void ball_check_paddle_collision(Ball& b, GameState& g);
+void trail_update(Ball& b);
+void trail_draw(Ball& b);
 
-void update_bullets(GameState& g);
-void draw_bullets(GameState& g);
+void update_balls(GameState& g);
+void draw_balls(GameState& g);
 
 
 // PADDLE

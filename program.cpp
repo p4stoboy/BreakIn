@@ -5,7 +5,7 @@
 #include "state_init.h"
 #include "util.h"
 #include "terrain_patterns.h"
-#include "bullet_effects.h"
+#include "ball_effects.h"
 
 
 int main()
@@ -25,9 +25,9 @@ int main()
             draw_text("score: " + std::to_string(game.score), COLOR_WHITE, 20, 20, option_to_screen());
             // DEBUG
             if (mouse_clicked(MOUSE_X1_BUTTON)) {
-                game.bullets.push_back(new_bullet({static_cast<double>(rng.randomInt(SCREEN_START, SCREEN_END)), static_cast<double>(SCREEN_HEIGHT-100)}, {3, -3}, 3, clr_bullet_standard, bullet_standard, 0, 1));
+                game.balls.push_back(new_ball({static_cast<double>(rng.randomInt(SCREEN_START, SCREEN_END)), static_cast<double>(SCREEN_HEIGHT-100)}, {3, -3}, 3, clr_ball_standard, ball_standard, 0, 1));
             } else if (mouse_clicked(MOUSE_X2_BUTTON)) {
-                game.bullets.push_back(new_bullet({static_cast<double>(rng.randomInt(SCREEN_START, SCREEN_END)), static_cast<double>(SCREEN_HEIGHT-100)}, {3, -3}, 3, clr_bullet_acid, bullet_acid, 2, 700));
+                game.balls.push_back(new_ball({static_cast<double>(rng.randomInt(SCREEN_START, SCREEN_END)), static_cast<double>(SCREEN_HEIGHT-100)}, {3, -3}, 3, clr_ball_acid, ball_acid, 2, 700));
             }
             // END DEBUG
 

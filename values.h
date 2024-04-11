@@ -31,7 +31,7 @@ extern XOR rng;
 extern color clr_background;
 extern color clr_paddle;
 extern color clr_block;
-extern color clr_bullet_standard;
-extern color clr_bullet_explosion;
-extern color clr_bullet_acid;
+extern color clr_ball_standard;
+extern color clr_ball_explosion;
+extern color clr_ball_acid;
 

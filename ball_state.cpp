@@ -2,11 +2,11 @@
 #include "state_management.h"
 #include "state_init.h"
 #include "splashkit.h"
-#include "bullet_effects.h"
+#include "ball_effects.h"
 #include "util.h"
 
 
-void bullet_update(Bullet& b, GameState& g) {
+void ball_update(Ball& b, GameState& g) {
 
     if (b.pos.y > SCREEN_HEIGHT) {
         b.active = false;
@@ -25,9 +25,9 @@ void bullet_update(Bullet& b, GameState& g) {
 
     b.pos.x += b.vel.x;
     b.pos.y += b.vel.y;
-    bullet_check_wall_collision(b);
-    bullet_check_block_collision(b, g);
-    bullet_check_paddle_collision(b, g);
+    ball_check_wall_collision(b);
+    ball_check_block_collision(b, g);
+    ball_check_paddle_collision(b, g);
     if (rng.chance(0.25)) {
         float trail_limiter = rng.randomFloat(0, 1);
         float xoff = 0.; //rng.randomFloat(-0.5, 0.5);
@@ -37,19 +37,19 @@ void bullet_update(Bullet& b, GameState& g) {
     trail_update(b);
 }
 
-void bullet_destroy(Bullet& b, GameState& g) {
+void ball_destroy(Ball& b, GameState& g) {
     for (int i = 0; i < 60; ++i) {
         vector_2d particle_vel = {rng.randomFloat(-4.0f, 4.0f), rng.randomFloat(-4.0f, 4.0f)};
         g.particles.push_back(new_particle(b.pos, particle_vel, b.clr, rng.randomInt(1,2), 60));
     }
 }
 
-void bullet_draw(Bullet& b) {
+void ball_draw(Ball& b) {
     trail_draw(b);
     fill_circle(b.clr, b.pos.x, b.pos.y, b.size);
 }
 
-void trail_update(Bullet& b) {
+void trail_update(Ball& b) {
     for (auto& p : b.trail) {
         particle_update(p);
     }
@@ -59,13 +59,13 @@ void trail_update(Bullet& b) {
                   b.trail.end());
 }
 
-void trail_draw(Bullet& b) {
+void trail_draw(Ball& b) {
     for (auto& p : b.trail) {
         particle_draw(p);
     }
 }
 
-void bullet_check_wall_collision(Bullet& b) {
+void ball_check_wall_collision(Ball& b) {
     if (b.pos.y > SCREEN_HEIGHT) {
         b.active = false;
         return;
@@ -80,7 +80,7 @@ void bullet_check_wall_collision(Bullet& b) {
     }
 }
 
-void bullet_check_block_collision(Bullet& b, GameState& g) {
+void ball_check_block_collision(Ball& b, GameState& g) {
     for (auto& row : g.terrain) {
         for (auto& block : row) {
             if (block && block->active) {
@@ -97,9 +97,9 @@ void bullet_check_block_collision(Bullet& b, GameState& g) {
 
                     // block effect
                     if (rng.chance(BLOCK_POWERUP_CHANCE)) {
-                        Bullet nb = roll_bullet();
+                        Ball nb = roll_ball();
                         nb.pos = block->pos;
-                        g.bullets.push_back(nb);
+                        g.balls.push_back(nb);
                         for (int i = 0; i < 15; ++i) {
                             vector_2d particle_vel = {rng.randomFloat(-2.0f, 2.0f), rng.randomFloat(-2.0f, 2.0f)};
                             g.particles.push_back(new_particle(block->pos, particle_vel, nb.clr, 2, 60));
@@ -125,7 +125,7 @@ void bullet_check_block_collision(Bullet& b, GameState& g) {
     }
 }
 
-void bullet_check_paddle_collision(Bullet& b, GameState& g) {
+void ball_check_paddle_collision(Ball& b, GameState& g) {
     if (b.pos.x < g.paddle.x + g.paddle.width && b.pos.x + b.size > g.paddle.x && b.pos.y >= g.paddle.y) {
         b.vel.y *= -1;
         b.vel.x = map_value(b.pos.x - (g.paddle.x + g.paddle.width / 2), 0, g.paddle.width / 2, 0, 5);
@@ -133,18 +133,18 @@ void bullet_check_paddle_collision(Bullet& b, GameState& g) {
 }
 
 
-void update_bullets(GameState& g) {
-    for (auto& b : g.bullets) {
-        bullet_update(b, g);
+void update_balls(GameState& g) {
+    for (auto& b : g.balls) {
+        ball_update(b, g);
         if (!b.active) {
-            bullet_destroy(b, g);
+            ball_destroy(b, g);
         }
     }
-    g.bullets.erase(remove_if(g.bullets.begin(), g.bullets.end(), [](const Bullet& b) { return !b.active; }), g.bullets.end());
+    g.balls.erase(remove_if(g.balls.begin(), g.balls.end(), [](const Ball& b) { return !b.active; }), g.balls.end());
 }
 
-void draw_bullets(GameState& g) {
-    for (auto& b : g.bullets) {
-        bullet_draw(b);
+void draw_balls(GameState& g) {
+    for (auto& b : g.balls) {
+        ball_draw(b);
     }
 }

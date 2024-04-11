@@ -7,7 +7,7 @@ GameState new_game_state() {
     game.status = PLAYING;
     game.terrain;
     game.paddle = new_paddle();
-    game.bullets = {};
+    game.balls = {};
     game.particles = {};
     return game;
 }
@@ -17,7 +17,7 @@ void reset_game_state(GameState& game) {
     game.status = PLAYING;
     game.terrain.clear();
     game.paddle = new_paddle();
-    game.bullets = {};
+    game.balls = {};
     game.particles = {};
 }
 
@@ -42,19 +42,19 @@ Particle new_particle(point_2d pos, vector_2d vel, color clr, int size, int ttl)
     return particle;
 }
 
-Bullet new_bullet(point_2d pos, vector_2d vel, int size, color clr, BulletEffect effect, int ttl_type, int ttl) {
-    Bullet bullet;
-    bullet.pos = pos;
-    bullet.vel = vel;
-    bullet.size = size;
-    bullet.clr = clr;
-    bullet.effect = effect;
-    bullet.active = true;
-    bullet.trail = {};
-    bullet.ttl_type = ttl_type;
-    bullet.ttl = ttl;
-    bullet.max_ttl = ttl;
-    return bullet;
+Ball new_ball(point_2d pos, vector_2d vel, int size, color clr, BallEffect effect, int ttl_type, int ttl) {
+    Ball ball;
+    ball.pos = pos;
+    ball.vel = vel;
+    ball.size = size;
+    ball.clr = clr;
+    ball.effect = effect;
+    ball.active = true;
+    ball.trail = {};
+    ball.ttl_type = ttl_type;
+    ball.ttl = ttl;
+    ball.max_ttl = ttl;
+    return ball;
 }
 
 Block new_block(point_2d pos, point_2d target_pos, ivec2 grid_pos, int width, int height, color c) {
