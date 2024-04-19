@@ -1,4 +1,4 @@
-#include "values.h"
+#include "globals.h"
 #include "state_management.h"
 #include "state_init.h"
 #include "splashkit.h"
@@ -8,7 +8,7 @@
 
 void ball_update(Ball& b, GameState& g) {
 
-    if (b.pos.y > SCREEN_HEIGHT) {
+    if (b.pos.y > GAME_AREA_HEIGHT) {
         b.active = false;
         b.trail.clear();
         return;
@@ -66,12 +66,12 @@ void trail_draw(Ball& b) {
 }
 
 void ball_check_wall_collision(Ball& b) {
-    if (b.pos.y > SCREEN_HEIGHT) {
+    if (b.pos.y > GAME_AREA_HEIGHT) {
         b.active = false;
         return;
     }
-    if (b.pos.x < SCREEN_START + b.size || b.pos.x > SCREEN_END - b.size - 1) {
-        b.pos.x = (b.pos.x < SCREEN_START + b.size) ? SCREEN_START + b.size : SCREEN_END - b.size - 1;
+    if (b.pos.x < GAME_AREA_START + b.size || b.pos.x > GAME_AREA_END - b.size - 1) {
+        b.pos.x = (b.pos.x < GAME_AREA_START + b.size) ? GAME_AREA_START + b.size : GAME_AREA_END - b.size - 1;
         b.vel.x *= -1.;
     }
     if (b.pos.y < 0 + b.size) {
@@ -107,6 +107,8 @@ void ball_check_block_collision(Ball& b, GameState& g) {
                     }
 
                     if (b.ttl_type == 1) --b.ttl;
+                    // Call the block effect, effect function should return false if the ball trajectory won't change
+                    // as is the case with acid for example
                     bool should_vel = b.effect(b, block->grid_pos, g);
                     if (!should_vel) {
                         return;

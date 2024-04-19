@@ -1,4 +1,4 @@
-#include "values.h"
+#include "globals.h"
 #include "state_init.h"
 
 GameState new_game_state() {
@@ -26,6 +26,7 @@ Paddle new_paddle() {
     paddle.x = WINDOW_WIDTH / 2;
     paddle.y = WINDOW_HEIGHT - 50;
     paddle.width = 100;
+    paddle.height = 10;
     paddle.clr = clr_paddle;
     return paddle;
 }

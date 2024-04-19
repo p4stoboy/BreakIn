@@ -1,4 +1,4 @@
-#include "values.h"
+#include "globals.h"
 #include "state_management.h"
 #include "state_init.h"
 

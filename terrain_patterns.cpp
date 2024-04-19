@@ -1,6 +1,6 @@
 #include "splashkit.h"
 #include "XOR.h"
-#include "values.h"
+#include "globals.h"
 #include "terrain_patterns.h"
 #include <cmath>
 #include "state_init.h"

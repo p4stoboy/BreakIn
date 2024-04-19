@@ -1,6 +1,6 @@
 #include "state_management.h"
 #include "terrain_patterns.h"
-#include "values.h"
+#include "globals.h"
 #include <stack>
 #include "util.h"
 
@@ -134,7 +134,12 @@ void dfs_mark_reachable(GameState& g, int row, int col, std::vector<std::vector<
     }
 }
 
-
+/**
+ * @brief Uses DFS to check if blocks are not connected to top row (have been shaved off main body of terrain)
+ * and deactivates them.
+ * @visited array is used to mark blocks that are reachable from the top row (is a boolean map of terrain grid).
+ * @param g The game state.
+ */
 void deactivate_disconnected_clusters(GameState& g) {
     std::vector<std::vector<bool>> visited(NUM_ROWS, std::vector<bool>(NUM_COLS, false));
 

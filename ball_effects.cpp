@@ -1,4 +1,4 @@
-#include "values.h"
+#include "globals.h"
 #include "splashkit.h"
 #include "ball_effects.h"
 #include "state_init.h"
