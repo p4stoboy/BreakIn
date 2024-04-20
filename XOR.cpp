@@ -1,4 +1,4 @@
-#include "XOR.h"
+#include "include/XOR.h"
 
 XOR::XOR(uint32_t initialSeed) : seed(initialSeed) {}
 

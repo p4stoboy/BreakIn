@@ -1,6 +1,6 @@
 #pragma once
 
-#include "splashkit.h"
+#include "splashkit/splashkit.h"
 #include "stdio.h"
 #include <stdexcept>
 

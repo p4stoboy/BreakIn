@@ -1,5 +1,5 @@
-#include "globals.h"
-#include "state_init.h"
+#include "include/globals.h"
+#include "include/state_init.h"
 
 GameState new_game_state() {
     GameState game;

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cstdint>
-#include <algorithm> // For std::swap
+#include <algorithm>
 
 /**
  * @brief A simple random number generator that uses the XOR shift algorithm.

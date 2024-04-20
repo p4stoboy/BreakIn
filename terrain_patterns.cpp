@@ -1,9 +1,9 @@
 #include "splashkit.h"
-#include "XOR.h"
-#include "globals.h"
-#include "terrain_patterns.h"
+#include "include/XOR.h"
+#include "include/globals.h"
+#include "include/terrain_patterns.h"
 #include <cmath>
-#include "state_init.h"
+#include "include/state_init.h"
 
 
 Grid grid_pattern(int rows, int cols) {

@@ -1,11 +1,11 @@
-#include "globals.h"
+#include "include/globals.h"
 #include "splashkit.h"
-#include "types.h"
-#include "state_management.h"
-#include "state_init.h"
-#include "util.h"
-#include "terrain_patterns.h"
-#include "ball_effects.h"
+#include "include/types.h"
+#include "include/state_management.h"
+#include "include/state_init.h"
+#include "include/util.h"
+#include "include/terrain_patterns.h"
+#include "include/ball_effects.h"
 
 
 int main()

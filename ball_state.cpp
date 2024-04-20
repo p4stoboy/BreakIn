@@ -1,9 +1,9 @@
-#include "globals.h"
-#include "state_management.h"
-#include "state_init.h"
+#include "include/globals.h"
+#include "include/state_management.h"
+#include "include/state_init.h"
 #include "splashkit.h"
-#include "ball_effects.h"
-#include "util.h"
+#include "include/ball_effects.h"
+#include "include/util.h"
 
 
 void ball_update(Ball& b, GameState& g) {

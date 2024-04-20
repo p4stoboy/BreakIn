@@ -1,7 +1,7 @@
-#include "globals.h"
+#include "include/globals.h"
 #include "splashkit.h"
-#include "XOR.h"
-#include "util.h"
+#include "include/XOR.h"
+#include "include/util.h"
 
 const int WINDOW_WIDTH = 1000;
 const int WINDOW_HEIGHT = 1000;

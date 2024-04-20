@@ -1,7 +1,7 @@
-#include "globals.h"
+#include "include/globals.h"
 #include "splashkit.h"
-#include "ball_effects.h"
-#include "state_init.h"
+#include "include/ball_effects.h"
+#include "include/state_init.h"
 
 
 bool ball_standard(Ball& b, ivec2 grid_pos, GameState& game) {

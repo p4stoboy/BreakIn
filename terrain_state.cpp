@@ -1,8 +1,8 @@
-#include "state_management.h"
-#include "terrain_patterns.h"
-#include "globals.h"
+#include "include/state_management.h"
+#include "include/terrain_patterns.h"
+#include "include/globals.h"
 #include <stack>
-#include "util.h"
+#include "include/util.h"
 
 
 int count_non_empty_rows(GameState& g) {

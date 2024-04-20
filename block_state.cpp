@@ -1,6 +1,6 @@
-#include "globals.h"
-#include "state_management.h"
-#include "state_init.h"
+#include "include/globals.h"
+#include "include/state_management.h"
+#include "include/state_init.h"
 
 void block_update(Block& b, GameState& g) {
     if (!b.active) {
