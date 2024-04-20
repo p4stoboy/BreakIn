@@ -3,6 +3,12 @@
 #include <cstdint>
 #include <algorithm> // For std::swap
 
+/**
+ * @brief A simple random number generator that uses the XOR shift algorithm.
+ * @def randomInt(min, max)
+ * @def randomFloat(min, max)
+ * @def chance(probability (0.0->1.0))
+ */
 struct XOR {
     XOR(uint32_t initialSeed = 0x77777777);
     int randomInt(int min, int max);
