@@ -552,7 +552,7 @@ struct GameState {
 };
 ```
 
-We will cover instantiating and updating this state in later sections, for now let's think about what minimum functionality our game needs to do something and go about implementing it.
+We will cover instantiating and updating this state in later sections, for now let's think about what minimum functionality our game needs and go about implementing it.
 
 ## Basic Game Entities
 
@@ -637,13 +637,13 @@ struct GameState {
 };
 ```
 
-So, we are creating a system of entity types which will exist (based on their `pos` (position) property) in an abstract space (which we are about to define) when instantiated. This abstract space is independent of any visual representation; it is a conceptual framework where our game objects interact and change state based on the game's rules and logic.
+So, we are creating a system of entity types which will exist (based on their `pos` (position) property) in an abstract space (which we defined above) when instantiated. This abstract space is independent of any visual representation; it is a conceptual framework where our game objects interact and change state based on the game's rules and logic.
 
 In essence, we are simulating a system of interactions and changes in the background, driven solely by the values and states of our entities. It is only at each time step that this abstract system is translated into a rendered frame, providing the visual representation of our game on the screen. For instance, while our position vectors currently correspond 1:1 with pixel positions within the game window, we could easily make our abstract space much bigger or smaller than the space our internal values correspond to, and draw their graphics against some function of the differential between the two spaces (ie. double the position vector before drawing if the screen space is 2:1 our abstract space).
 
-In essence, the game's logic and mechanics are maintained completely separately from, and only interact with our render in one direction (nothing in our draw functions will mutate the state of the game).
+The game's logic and mechanics are maintained completely separately from, and only interact with our render in one direction (nothing in our draw functions will mutate the state of the game).
 
-With that in mind, we'll take a quick detour and implement some global **constants** which will help define our game space.
+With that in mind, let's look at how we can place stuff in this space.
 
 # Initialising Game Entities
 
@@ -753,3 +753,30 @@ struct GameState {
     // Additional game state variables will be added here
 };
 ```
+
+Now that we have our entities defined and initialisation functions set up, we can move on to updating the game state and looping back to the event loop.
+We will implement very basic state updates in the next section so that we can get something happening on screen, and then move on to more complex interactions and game logic.
+
+
+# Updating State and Looping Back
+
+### Extend GameState struct
+
+First, let's extend our `GameState` struct signature to include instances of the entities we defined earlier. This will allow us to keep track of the game's state and the positions of the paddle, balls, and blocks.
+
+**types.h**
+```cpp
+// ...other types
+
+struct GameState {
+    int score;
+    GameStatus game_status;
+    Paddle paddle;
+    std::vector<Ball> balls;
+    std::vector<Block> blocks;
+};
+```
+
+
+
+
