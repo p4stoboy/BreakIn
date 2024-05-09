@@ -1,4 +1,5 @@
 #include "include/state_management.h"
+#include "include/draw.h"
 
 void update_global_state(GameState& g) {
     update_particles(g);

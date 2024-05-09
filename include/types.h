@@ -27,15 +27,17 @@ using Grid = std::vector<Row>;
 
 /**
  * @brief A BallEffect is a function pointer that is used to represent the effect of a ball.
- * @details A BallEffect is a function that takes a ball, grid position (of the block the ball collided with),
+ * @details A BallEffect takes a ball, grid position (of the block the ball collided with),
  * and game state as arguments and returns a boolean.
- * The boolean is used in the ball_check_wall_collision (ball_state.cpp) function to determine if the ball should
- * change direction after colliding with a block.
+ * The boolean is used immediately after the effect function call in the ball_check_wall_collision (ball_state.cpp) function to determine if the ball should
+ * change direction after colliding with a block (or not, like with acid).
+ * We are using a raw pointer instead of std::function here as the global ball vector gets resized and we don't
+ * want Ball to have to implement move and copy semantics.
  */
 using BallEffect = bool (*)(Ball& ball, ivec2 grid_pos, GameState& game);
 
 /**
- * @brief A PatternFunc is a function pointer that is used to represent the pattern of blocks in the game.
+ * @brief A PatternFunc is a function that is used to generate a pattern of blocks against a Grid.
  * @details A PatternFunc is a function that takes a width and height dimension as arguments and returns a grid.
  * The grid is used to represent the blocks in the game.
  */
@@ -75,6 +77,7 @@ struct Paddle {
  * @details A particle has a position, velocity, size, color, time to live, and original size.
  * The time to live is the number of updates the particle will be drawn for before being removed.
  * The original size is used to determine how the particle will shrink over time.
+ * The maximum time to live is used to determine how much of the ttl has lapsed to inform other routines (alpha channel etc)
  */
 struct Particle {
     point_2d pos;
@@ -91,7 +94,7 @@ struct Particle {
  * @details A ball has a position, velocity, size, color, effect, time to live type, time to live, and maximum time to live.
  * The time to live type is used to determine how the ball will be removed from the game.
  * The time to live type can be 0, 1, or 2. 0 means the ball will not be removed, 1 means the ball will be removed after a certain number of hits, and 2 means the ball will be removed after a certain number of updates.
- * The maximum time to live is used to determine how long the ball will be drawn for.
+ * The maximum time to live is used to determine how much of the ttl has lapsed to inform other routines (alpha channel etc)
  */
 struct Ball {
     point_2d pos;

@@ -38,7 +38,7 @@ Ball roll_ball() {
     color clr = clr_ball_standard;
     int ttl_type = 0;
     int ttl = 0;
-    bool non_standard = rng.chance(0.05);
+    bool non_standard = rng.chance(0.1);
     if (non_standard) {
         bool explode = rng.chance(0.5);
         effect = explode ? ball_explosion : ball_acid;
@@ -46,5 +46,5 @@ Ball roll_ball() {
         ttl_type = explode ? 1 : 2;
         ttl = explode ? 3 : 700;
     }
-    return new_ball({50,50}, {0, -3}, 3, clr, effect, ttl_type, ttl);
+    return new_ball({50,50}, {rng.randomFloat(3, -3), -3}, 3, clr, effect, ttl_type, ttl);
 }

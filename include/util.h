@@ -10,7 +10,28 @@
  * @param hex The hex string.
  * @return color The color.
  */
-color color_from_hex(const std::string& hex);
+inline color color_from_hex(const std::string& hex) {
+    int r, g, b;
+    sscanf(hex.c_str(), "#%02x%02x%02x", &r, &g, &b);
+    return rgb_color(r, g, b);
+}
+
+/**
+ * @brief Map a value from one range to another.
+ *
+ * @param value The value to map.
+ * @param input_min The input minimum.
+ * @param input_max The input maximum.
+ * @param output_min The output minimum.
+ * @param output_max The output maximum.
+ * @return double The mapped value.
+ */
+inline double map_value(double value, double input_min, double input_max, double output_min, double output_max) {
+    // Calculate the ratio between the input range and output range
+    double scale = (output_max - output_min) / (input_max - input_min);
+    // Map the value to the new range
+    return output_min + (value - input_min) * scale;
+}
 
 /**
  * @brief Clamp a value between a low and high value.
@@ -23,54 +44,6 @@ color color_from_hex(const std::string& hex);
  */
 template<typename T>
 T clamp(const T& value, const T& low, const T& high);
-
-/**
- * @brief Choose a random element from a vector.
- *
- * @tparam T The element type.
- * @param vec The vector.
- * @return T The chosen element.
- */
-template<typename T>
-T choose(const std::vector<T>& vec);
-
-/**
- * @brief Choose a random element from an array.
- *
- * @tparam T The element type.
- * @tparam N The array size.
- * @param arr The array.
- * @return T The chosen element.
- */
-template<typename T, size_t N>
-T choose(const T (&arr)[N]);
-
-/**
- * @brief Map a value from one range to another.
- *
- * @param value The value to map.
- * @param input_min The input minimum.
- * @param input_max The input maximum.
- * @param output_min The output minimum.
- * @param output_max The output maximum.
- * @return double The mapped value.
- */
-double map_value(double value, double input_min, double input_max, double output_min, double output_max);
-
-
-template<typename T>
-T choose(const std::vector<T>& vec) {
-    if (vec.empty()) {
-        throw std::invalid_argument("Vector is empty");
-    }
-    int index = std::rand() % vec.size();
-    return vec[index];
-}
-
-template<typename T, size_t N>
-T choose(const T (&arr)[N]) {
-    return arr[std::rand() % N];
-}
 
 template<typename T>
 T clamp(const T& value, const T& low, const T& high) {

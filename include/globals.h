@@ -2,70 +2,68 @@
 
 #include "splashkit/splashkit.h"
 #include "XOR.h"
+#include "util.h"
 
 /**
  * @brief The global window dimensions.
  *
  */
-extern const int WINDOW_WIDTH;
-extern const int WINDOW_HEIGHT;
+inline constexpr int WINDOW_WIDTH = 1000;
+inline constexpr int WINDOW_HEIGHT = 1000;
 
 /**
  * @brief The global game area dimensions.
  *
  */
-extern const int GAME_AREA_OFFSET;
-extern const int GAME_AREA_WIDTH;
-extern const int GAME_AREA_HEIGHT;
-extern const int GAME_AREA_START;
-extern const int GAME_AREA_END;
+inline constexpr int GAME_AREA_WIDTH = 600;
+inline constexpr int GAME_AREA_HEIGHT = 1000;
+inline constexpr int GAME_AREA_OFFSET = (WINDOW_WIDTH - GAME_AREA_WIDTH) / 2;
+inline constexpr int GAME_AREA_START = GAME_AREA_OFFSET;
+inline constexpr int GAME_AREA_END = GAME_AREA_START + GAME_AREA_WIDTH;
 
 /**
  * @brief The global terrain dimensions and offsets relative to window.
  *
  */
-extern const int TERRAIN_OFFSET;
-extern const int TERRAIN_WIDTH;
-extern const int TERRAIN_HEIGHT;
+inline constexpr int TERRAIN_OFFSET = GAME_AREA_OFFSET + GAME_AREA_WIDTH / 10;
+inline constexpr int TERRAIN_WIDTH = GAME_AREA_WIDTH - GAME_AREA_WIDTH / 5;
+inline constexpr int TERRAIN_HEIGHT = TERRAIN_WIDTH;
 
 /**
  * @brief Terrain dimensions
  *
  */
-extern const int NUM_ROWS;
-extern const int NUM_COLS;
+inline constexpr int NUM_ROWS = 50;
+inline constexpr int NUM_COLS = 25;
 
 /**
  * @brief The global block dimensions inside the Terrain Grid.
  *
  */
-extern const int BLOCK_WIDTH;
-extern const int BLOCK_HEIGHT;
+inline constexpr int BLOCK_WIDTH = TERRAIN_WIDTH / NUM_COLS;
+inline constexpr int BLOCK_HEIGHT = TERRAIN_HEIGHT / NUM_ROWS;
 
-extern const float BLOCK_POWERUP_CHANCE;
-extern const int INITIAL_PADDLE_WIDTH;
-extern const int MAX_PADDLE_WIDTH;
-extern const int MIN_PADDLE_WIDTH;
+inline constexpr float BLOCK_POWERUP_CHANCE = 0.02;
+inline constexpr int INITIAL_PADDLE_WIDTH = WINDOW_WIDTH / 10;
+inline constexpr int MAX_PADDLE_WIDTH = INITIAL_PADDLE_WIDTH * 2;
+inline constexpr int MIN_PADDLE_WIDTH = INITIAL_PADDLE_WIDTH / 2;
 
-// screen shake
-extern int SSX;
-extern int SSY;
 
 // rng
 /**
  * @brief The global random number generator.
  *
  */
-extern XOR rng;
+inline XOR rng = XOR();
 
 /**
  * @brief The game palette.
  *
  */
-extern const color clr_background;
-extern const color clr_paddle;
-extern const color clr_block;
-extern const color clr_ball_standard;
-extern const color clr_ball_explosion;
-extern const color clr_ball_acid;
+const color clr_background = color_from_hex("#000000");
+const color clr_paddle = color_from_hex("#FBF6E0");
+const color clr_block = color_from_hex("#FBF6E0");
+const color clr_ball_standard = color_from_hex("#FBF6E0");
+const color clr_ball_explosion = color_from_hex("#FF2727");
+const color clr_ball_acid = color_from_hex("#AFFF26");
 

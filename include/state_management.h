@@ -23,19 +23,12 @@ void update_global_state(GameState& g);
 void block_update(Block& b, GameState& g);
 
 /**
- * @brief Draw the block.
- *
- * @param b The block to draw.
- */
-void block_draw(Block& b);
-
-/**
  * @brief Destroy the block.
  *
  * @param b The block to destroy.
  * @param g The game state.
  */
-void block_destroy(Block& b, GameState& g);
+void block_destroy(const Block& b, GameState& g);
 
 
 //BALL
@@ -54,13 +47,6 @@ void ball_update(Ball& b, GameState& g);
  * @param g The game state.
  */
 void ball_destroy(Ball& b, GameState& g);
-
-/**
- * @brief Draw the ball.
- *
- * @param b The ball to draw.
- */
-void ball_draw(Ball& b);
 
 /**
  * @brief Check if the ball has collided with the screen edge.
@@ -93,25 +79,12 @@ void ball_check_paddle_collision(Ball& b, GameState& g);
 void trail_update(Ball& b);
 
 /**
- * @brief Draw the ball's trail.
- *
- * @param b The ball to draw the trail for.
- */
-void trail_draw(Ball& b);
-
-/**
  * @brief Update the balls in the game.
  *
  * @param g The game state.
  */
 void update_balls(GameState& g);
 
-/**
- * @brief Draw the balls in the game.
- *
- * @param g The game state.
- */
-void draw_balls(GameState& g);
 
 
 // PADDLE
@@ -121,12 +94,7 @@ void draw_balls(GameState& g);
  * @param g The game state.
  */
 void paddle_update(GameState& g);
-/**
- * @brief Draw the paddle.
- *
- * @param g The game state.
- */
-void paddle_draw(GameState& g);
+
 
 
 // PARTICLE
@@ -138,25 +106,11 @@ void paddle_draw(GameState& g);
 void particle_update(Particle& p);
 
 /**
- * @brief Draw the particle.
- *
- * @param p The particle to draw.
- */
-void particle_draw(Particle& p);
-
-/**
  * @brief Update the particles in the game.
  *
  * @param g The game state.
  */
 void update_particles(GameState& g);
-
-/**
- * @brief Draw the particles in the game.
- *
- * @param g The game state.
- */
-void draw_particles(GameState& g);
 
 
 // TERRAIN
@@ -191,13 +145,6 @@ void add_new_chunk(GameState& g, int num_rows, std::function<Grid(int, int)> pat
  * @param g The game state.
  */
 void update_terrain(GameState& g);
-
-/**
- * @brief Draw the terrain in the game.
- *
- * @param g The game state.
- */
-void draw_terrain(GameState& g);
 
 /**
  * @brief Uses dfs_mark_reachable() to check if blocks are not connected to top row (have been shaved off main body of terrain)

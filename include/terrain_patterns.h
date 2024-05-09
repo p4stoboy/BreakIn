@@ -18,8 +18,8 @@ Grid sine_landscape(int rows, int cols);
  * @brief Check if a position is on the edge of a rectangle.
  *
  * @param pos The position to check.
- * @param start The start position of the rectangle.
- * @param end The end position of the rectangle.
+ * @param start The top left position of the rectangle.
+ * @param end The bottom right position of the rectangle.
  * @param thresh The threshold for the edge.
  * @return true If the position is on the edge.
  * @return false If the position is not on the edge.

@@ -4,6 +4,7 @@
 #include "splashkit.h"
 #include "include/ball_effects.h"
 #include "include/util.h"
+#include "include/draw.h"
 
 
 void ball_update(Ball& b, GameState& g) {
@@ -98,7 +99,7 @@ void ball_check_block_collision(Ball& b, GameState& g) {
                     // block effect
                     if (rng.chance(BLOCK_POWERUP_CHANCE)) {
                         Ball nb = roll_ball();
-                        nb.pos = block->pos;
+                        nb.pos = {block->pos.x + block->width / 2, block->pos.y + block->height / 2};
                         g.balls.push_back(nb);
                         for (int i = 0; i < 15; ++i) {
                             vector_2d particle_vel = {rng.randomFloat(-2.0f, 2.0f), rng.randomFloat(-2.0f, 2.0f)};

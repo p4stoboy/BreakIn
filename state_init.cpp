@@ -1,5 +1,6 @@
 #include "include/globals.h"
 #include "include/state_init.h"
+#include <cassert>
 
 GameState new_game_state() {
     GameState game;
@@ -55,6 +56,7 @@ Ball new_ball(point_2d pos, vector_2d vel, int size, color clr, BallEffect effec
     ball.ttl_type = ttl_type;
     ball.ttl = ttl;
     ball.max_ttl = ttl;
+    assert(effect && "BallEffect must be initialized with a valid function");
     return ball;
 }
 
