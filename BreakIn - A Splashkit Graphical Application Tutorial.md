@@ -148,7 +148,7 @@ This will set the foundation for the more intricate features of your game and en
 
 Before diving into the core game development concepts, we'll quickly implement a couple of helpful functions that we'll use later, as well as our own PRNG type which is the only object with member functions we'll implement directly in this tutorial. The reason for this is that a PRNG is one of the only abstractions where I can confidently say encapsulation of functionality and state is the best design approach (it needs to be portable, expose a consistent interface, and maintain its own state throughout the application lifetime). The rest of our functionality will be implemented as functions which take in and return data structures, this is to keep our code as simple and composable as possible.
 
-## Utility Function in BreakIn
+## Utility Functions in BreakIn
 
 ### XORShift PRNG
 
@@ -346,7 +346,9 @@ T clamp(const T& value, const T& low, const T& high) {
 Briefly, these 3 functions are:
 
 `color_from_hex(hex)` which takes a hex string and returns a Splashkit color object (very useful when working with colour tools like [p4lette](https://p4lette.app)).
+
 `map_value(value, input_min, input_max, output_min, output_max)` which maps a value from one range to another (useful for scaling values).
+
 `clamp(value, low, high)` which clamps a value between a low and high value (useful for ensuring values are within a certain range).
 
 These functions are simple and will be used throughout the game to simplify and abstract some common operations.
