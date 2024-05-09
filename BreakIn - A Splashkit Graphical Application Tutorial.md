@@ -110,7 +110,7 @@ int main()
         process_events();
 
         // Update game state values (we will implement this routine ourselves)
-        update_game();
+        update_game_state();
 
         // Draw to frame buffer (we will also implement this)
         draw_game();
@@ -127,7 +127,7 @@ int main()
 ```
 
 Within this loop, you will integrate logic to react to keyboard strokes, mouse movements, and other player inputs. `process_events` function serves as the dispatcher, funneling input in to scope.
-`update_game` mutates the game's state, readying it for the next frame's visual portrayal.
+`update_game_state` mutates the game's state, readying it for the next frame's visual portrayal.
 `draw_game` will invoke functions to generate the next frame of the game.
 `refresh_screen` concludes the cycle by presenting the updated state to the player.
 
@@ -361,7 +361,7 @@ This is a good practice as it allows us to easily modify the game's settings fro
 
 ### globals.h
 
-In `globals.h`, we declare external global **constants** (immutable values) that will be used throughout the game. This header file acts as a central point of reference for all global settings. We maintain these separately from our gamestate struct as they are **not mutable** values, they function as universal rules which our gameplay systems are implemented against and as such they should be abstracted as far away from our mechanical functionality as possible.
+In `globals.h`, we declare global **constants** (immutable values) that will be used throughout the game. This header file acts as a central point of reference for all global settings. We maintain these separately from our gamestate struct as they are **not mutable** values, they function as universal rules which our gameplay systems are implemented against and as such they should be abstracted as far away from our mechanical functionality as possible.
 
 **globals.h**
 
@@ -472,7 +472,7 @@ int main()
         process_events();
 
         // Update game state values (we will implement this routine ourselves)
-        update_game();
+        update_game_state();
 
         // Draw to frame buffer (we will also implement this)
         draw_game();
