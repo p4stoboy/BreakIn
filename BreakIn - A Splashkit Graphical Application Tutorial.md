@@ -37,9 +37,6 @@ ___
   - Enhancing the game with visual effects
   - Adding particle systems for dynamic interactions
   - Incorporating color and graphics enhancements
-- **[Utility Functions Collection](#utility-functions-collection)**
-  - Building and maintaining a set of utility functions
-  - Applying utilities for game development tasks
 - **[Conclusion](#conclusion)**
   - Recap and next steps for game development
 
