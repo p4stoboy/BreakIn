@@ -667,23 +667,9 @@ Ball new_ball(point_2d pos, vector_2d vel);
 Block new_block(point_2d pos);
 ```
 
-Now we can declare a new global constant (`INITIAL_PADDLE_WIDTH`) in `globals.h` and define it in `globals.cpp`.
+By making the paddle position (and below, dimensions) a function of our screen space (remember the paddle constants in `globals.h`), it means we can adjust the screen dimensions without worrying about the relative position and size of our paddle.
 
-**globals.h**
-
-```cpp
-extern const int INITIAL_PADDLE_WIDTH;
-```
-
-**globals.cpp**
-
-```cpp
-const int INITIAL_PADDLE_WIDTH = WINDOW_WIDTH / 10;
-```
-
-By making the paddle position (and below, dimensions) a function of our screen space, it means we can adjust the screen dimensions without worrying about the relative position and size of our paddle.
-
-The in `state_init.cpp` we can define the function bodies.
+Then in `state_init.cpp` we can define the function bodies.
 
 **state_init.cpp**
 
@@ -698,7 +684,7 @@ Paddle new_paddle() {
     // make paddle's initial position center-bottom
     paddle.x = WINDOW_WIDTH / 2;
     paddle.y = WINDOW_HEIGHT - 50;
-    paddle.width = INITIAL_PADDLE_WIDTH; // <- new constant
+    paddle.width = INITIAL_PADDLE_WIDTH;
     paddle.height = WINDOW_HEIGHT / 80;
     return paddle;
 }
