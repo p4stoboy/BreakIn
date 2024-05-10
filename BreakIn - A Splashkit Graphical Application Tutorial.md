@@ -46,6 +46,8 @@ ___
 
 BreakIn is a game development project that explores basic game design patterns and implementations, walking you through building something that combines classic arcade gameplay with some procedural generation and programmatic drawing techniques. This tutorial will guide you through the development process, leveraging SplashKit as the graphics engine.
 
+Our initial goal is to create a simple breakout-style game where the player controls a paddle to bounce a ball and break ***an endless stream*** of blocks. We will start with the core game loop, event handling, and state management, then gradually introduce more complex features like physics, terrain generation, and visual effects.
+
 **note:** This tutorial uses a combination of imperative and functional / declarative patterns to encapsulate and inform functionality, this is a personal choice by me based on both the implementation language and my general distaste for object oriented design patterns. That said, the concepts and broad implementation patterns covered from here on out can easily be applied to an object oriented approach.
 ## Setting up the development environment
 
@@ -444,7 +446,7 @@ Just to show you how these values are being used, and why there are so many of t
 
 ![constants demo](tutorial_assets/consts.png)
 
-Take your time to get a feel for how these values are being used relative to each other.
+Take your time to get a feel for how these values are being used relative to each other, and have a think about what else they might be used for later in our development.
 
 Now we can edit our main file to use some these variables during window instantiation.
 
@@ -754,15 +756,92 @@ struct GameState {
 };
 ```
 
-Now that we have our entities defined and initialisation functions set up, we can move on to updating the game state and looping back to the event loop.
-We will implement very basic state updates in the next section so that we can get something happening on screen, and then move on to more complex interactions and game logic.
+# Terrain Grid and Block positioning
+
+Before we dive into updating the game state and handling collisions, let's take a moment to discuss the Grid system used to represent the blocks in the game, as well as the `ivec2` type and the purpose of each block storing its own grid position.
+
+### Terrain Grid
 
 
-# Updating State and Looping Back
+In BreakIn, the blocks are organized in a 2D grid called terrain within the GameState struct. This grid is represented using a special data structure composed of a vector of vectors of unique pointers to Block instances.
 
-### Extend GameState struct
+**types.h**
+```cpp
+/**
+ * @brief A Row is a vector of unique pointers to blocks.
+ * @details A Row is used to represent a row of blocks in the game.
+ */
+using Row = std::vector<std::unique_ptr<Block>>;
 
-First, let's extend our `GameState` struct signature to include instances of the entities we defined earlier. This will allow us to keep track of the game's state and the positions of the paddle, balls, and blocks.
+/**
+ * @brief A Grid is a vector of rows.
+ * @details A Grid is used to represent the grid of blocks in the game.
+ */
+using Grid = std::vector<Row>;
+
+// ...other types
+```
+The `Row` type is defined as a vector of unique pointers to `Block` instances. Each element in the `Row` vector represents a block in that row. The use of unique pointers ensures that each block is owned by the `Row` and will be automatically deleted when the `Row` is destroyed or the block is removed from the grid.
+The `Grid` type is defined as a vector of `Row` instances. Each element in the `Grid` vector represents a row of blocks in the game. By combining these two types, we create a 2D grid structure that efficiently manages the blocks in the game.
+Using this grid system provides several benefits:
+- It allows for easy access and manipulation of blocks based on their row and column positions.
+- The use of unique pointers ensures proper memory management and ownership of the blocks.
+- It provides a clear and organized structure for representing the game's block layout.
+
+### ivec2 Type and Block Grid Position
+In addition to the grid system, each `Block` instance also stores its own grid position using the `ivec2` type. The `ivec2` type is a simple struct that represents a 2D vector with integer components.
+
+**types.h**
+```cpp
+/**
+ * @brief A 2D integer vector.
+ * @details An ivec2 is used to represent a 2D vector with integer components.
+ */
+struct ivec2 {
+    int x, y;
+};
+
+// ...other types
+```
+By storing the grid position internally within each Block instance, we can easily identify the row and column of the block within the grid. This information is useful for various purposes, but fundamentally it gives us a way to find the block in the `Grid` when we encounter it based on its position in the game space.
+
+Updated version of the `Block` struct that includes the grid_pos member:
+
+**types.h**
+```cpp
+struct Block {
+    bool active;
+    point_2d pos;
+    int width;
+    int height;
+    color clr;
+    ivec2 grid_pos;
+};
+```
+**state_init.h**
+```cpp
+// ...other declarations
+Block new_block(point_2d pos, ivec2 grid_pos, int width, int height, color clr);
+```
+**state_init.cpp**
+```cpp
+// ...rest of file
+Block new_block(point_2d pos, ivec2 grid_pos, int width, int height, color clr) {
+    Block block;
+    block.pos = pos;
+    block.grid_pos = grid_pos;
+    block.width = width;
+    block.height = height;
+    block.active = true;
+    block.clr = clr;
+    return block;
+}
+```
+The `grid_pos` member stores the row and column position of the block within the grid.
+With this understanding of the grid system and block positioning, let's proceed to update the GameState struct and implement the state update functions.
+
+### Updating the GameState Struct
+We'll update the GameState struct in the types.h file to include vectors for the balls and terrain, as well as our player `Paddle`.
 
 **types.h**
 ```cpp
@@ -773,9 +852,48 @@ struct GameState {
     GameStatus game_status;
     Paddle paddle;
     std::vector<Ball> balls;
-    std::vector<Block> blocks;
+    Grid terrain;
 };
 ```
+
+# Populating the Grid
+
+For now, we'll just write a function to return a fully populated `Grid`. Later we'll extend this to be more dynamic but right now we just want to get something on the screen.
+### new_grid()
+**state_init.h**
+```cpp
+// ...other declarations
+Grid new_grid();
+```
+**state_init.cpp**
+```cpp
+// ...rest of file
+Grid new_grid() {
+    Grid grid;
+    for (int y = 0; y < NUM_ROWS; ++y) {
+        // create a new row (which is a vector of Blocks remember)
+        Row row;
+        for (int x = 0; x < NUM_COLS; ++x) {
+            // assign world position based on global constants
+            point_2d pos = {static_cast<double>(TERRAIN_OFFSET + x * BLOCK_WIDTH), static_cast<double>(y * BLOCK_HEIGHT)};
+            // discrete position in grid structure
+            ivec2 grid_pos = {x, y};
+            row.push_back(std::make_unique<Block>(new_block(pos, grid_pos, BLOCK_WIDTH, BLOCK_HEIGHT, clr_block)));
+        }
+        grid.push_back(std::move(row));
+    }
+    return grid;
+}
+```
+
+
+
+
+
+
+
+Now that we have our entities defined and initialisation functions set up, we can move on to updating the game state and looping back to the event loop.
+We will implement very basic state updates in the next section so that we can get something happening on screen, and then move on to more complex interactions and game logic.
 
 
 
