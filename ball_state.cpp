@@ -45,11 +45,6 @@ void ball_destroy(Ball& b, GameState& g) {
     }
 }
 
-void ball_draw(Ball& b) {
-    trail_draw(b);
-    fill_circle(b.clr, b.pos.x, b.pos.y, b.size);
-}
-
 void trail_update(Ball& b) {
     for (auto& p : b.trail) {
         particle_update(p);
@@ -58,12 +53,6 @@ void trail_update(Ball& b) {
     b.trail.erase(std::remove_if(b.trail.begin(), b.trail.end(),
                                  [](const Particle& p) { return p.ttl <= 0; }),
                   b.trail.end());
-}
-
-void trail_draw(Ball& b) {
-    for (auto& p : b.trail) {
-        particle_draw(p);
-    }
 }
 
 void ball_check_wall_collision(Ball& b) {
@@ -146,8 +135,3 @@ void update_balls(GameState& g) {
     g.balls.erase(remove_if(g.balls.begin(), g.balls.end(), [](const Ball& b) { return !b.active; }), g.balls.end());
 }
 
-void draw_balls(GameState& g) {
-    for (auto& b : g.balls) {
-        ball_draw(b);
-    }
-}

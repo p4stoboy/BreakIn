@@ -7,38 +7,47 @@ ___
 #### Table of Contents
 
 - **[Introduction](#introduction)**
-  - Overview of BreakIn
-  - Setting up the development environment
+    - Overview of BreakIn
+    - Setting up the development environment
 - **[The Event Loop](#the-event-loop)**
-  - Understanding the main game loop
-  - Event handling and game flow
+    - Understanding the main game loop
+    - Event handling and game flow
 - **[Detour - Utility Functions](#detour---utility-functions)**
-  - Implementing utility functions for game development
-  - Rolling our own XOR PRNG
+    - Implementing utility functions for game development
+    - Rolling our own XOR PRNG
 - **[Setting Up Global Constants](#setting-up-global-constants)**
-  - Defining constants for screen dimensions and gameplay settings
-  - Organizing global constants for easy access and modification
+    - Defining constants for screen dimensions and gameplay settings
+    - Organizing global constants for easy access and modification
 - **[Global State Management](#global-state-management)**
-  - Designing the global state structure
-  - Managing game-wide states and settings
+    - Designing the global state structure
+    - Managing game-wide states and settings
 - **[Basic Game Entities](#basic-game-entities)**
-  - Defining instance structures for game objects
-  - Abstracting common functionalities
+    - Defining instance structures for game objects
+    - Abstracting common functionalities
 - **[Initialising Game Entities](#initialising-game-entities)**
-  - Creating instances of game objects
-  - Initialising states for gameplay
+    - Creating instances of game objects
+    - Initialising states for gameplay
+- **[Terrain Grid and Block Positioning](#terrain-grid-and-block-positioning)**
+    - Implementing the grid system for blocks
+    - Storing block positions within the grid
+- **[Populating the Grid](#populating-the-grid)**
+    - Creating a function to generate a fully populated grid
 - **[Updating State and Looping Back](#updating-state-and-looping-back)**
-  - Handling state changes during gameplay
-  - Integrating state updates with the event loop
+    - Handling state changes during gameplay
+    - Integrating state updates with the event loop
+    - Implementing update functions for game entities
+- **[Drawing the Game](#drawing-the-game)**
+    - Implementing draw functions for game entities
+    - Rendering the game state on the screen
 - **[Physics and Terrain Generation](#physics-and-terrain-generation)**
-  - Implementing basic physics for movement and collision
-  - Generating dynamic terrain for gameplay
+    - Implementing basic physics for movement and collision
+    - Generating dynamic terrain for gameplay
 - **[Juice, Particles, and Color](#juice-particles-and-color)**
-  - Enhancing the game with visual effects
-  - Adding particle systems for dynamic interactions
-  - Incorporating color and graphics enhancements
+    - Enhancing the game with visual effects
+    - Adding particle systems for dynamic interactions
+    - Incorporating color and graphics enhancements
 - **[Conclusion](#conclusion)**
-  - Recap and next steps for game development
+    - Recap and next steps for game development
 
 ---
 
@@ -96,17 +105,14 @@ SplashKit simplifies event management, providing a structured approach to handli
 // import
 #include "splashkit.h"
 
-// we will declare these in header files later
-void update_game();
-void draw_game();
-
 int main()
 {
     // Open the window to begin the game
     open_window("BreakIn", 800, 600);
+    hide_mouse(); // hide mouse while cursor is over game window
 
     // Main game loop: continues to run until the window is closed
-    while (!window_close_requested())
+    while (!quit_requested())
     {
         // Ingest input from peripheral devices
         process_events();
@@ -291,7 +297,7 @@ In the rest of the tutorial we will be decoupling our definitions from our imple
 ```cpp
 #pragma once
 
-#include "splashkit/splashkit.h"
+#include "splashkit.h"
 #include "stdio.h"
 #include <stdexcept>
 
@@ -370,7 +376,7 @@ In `globals.h`, we declare global **constants** (immutable values) that will be 
 ```cpp
 #pragma once
 
-#include "splashkit/splashkit.h"
+#include "splashkit.h"
 #include "XOR.h"
 #include "util.h"
 
@@ -448,6 +454,8 @@ Just to show you how these values are being used, and why there are so many of t
 
 Take your time to get a feel for how these values are being used relative to each other, and have a think about what else they might be used for later in our development.
 
+**note:** For the rest of the tutorial we will be omitting the Doxygen comments for brevity, however they will be available in the provided source code.
+
 Now we can edit our main file to use some these variables during window instantiation.
 
 **program.cpp**
@@ -466,9 +474,10 @@ int main()
     // Open the window to begin the game
     // using new global constants
     open_window("BreakIn", WINDOW_WIDTH, WINDOW_HEIGHT);
+    hide_mouse(); // hide mouse while cursor is over game window
 
     // Main game loop: continues to run until the window is closed
-    while (!window_close_requested())
+    while (!quit_requested())
     {
         // Ingest input from peripheral devices
         process_events();
@@ -607,7 +616,7 @@ Now we can update our `types.h` file to look like:
 ```cpp
 #pragma once // linker flag
 
-#include "splashkit.h";
+#include "splashkit.h"
 
 struct Ball {
     bool active;
@@ -665,8 +674,8 @@ In a new file (`state_init.h`) we will declare some initialisation functions.
 #include "types.h"
 
 Paddle new_paddle();
-Ball new_ball(point_2d pos, vector_2d vel);
-Block new_block(point_2d pos);
+Ball new_ball(point_2d pos, vector_2d vel, int size, color clr);
+Block new_block(point_2d pos, int width, int height, color clr);
 ```
 
 By making the paddle position (and below, dimensions) a function of our screen space (remember the paddle constants in `globals.h`), it means we can adjust the screen dimensions without worrying about the relative position and size of our paddle.
@@ -684,27 +693,30 @@ Then in `state_init.cpp` we can define the function bodies.
 Paddle new_paddle() {
     Paddle paddle;
     // make paddle's initial position center-bottom
-    paddle.x = WINDOW_WIDTH / 2;
-    paddle.y = WINDOW_HEIGHT - 50;
+    paddle.pos.x = WINDOW_WIDTH / 2;
+    paddle.pos.y = WINDOW_HEIGHT - 50;
     paddle.width = INITIAL_PADDLE_WIDTH;
     paddle.height = WINDOW_HEIGHT / 80;
+    paddle.clr = clr_paddle; // global constant
     return paddle;
 }
 
-Ball new_ball(point_2d pos, vector_2d vel, int size) {
+Ball new_ball(point_2d pos, vector_2d vel, int size, color clr) {
     Ball ball;
     ball.pos = pos;
     ball.vel = vel;
     ball.size = size;
+    ball.clr = clr;
     ball.active = true;
     return ball;
 }
 
-Block new_block(point_2d pos, int width, int height) {
+Block new_block(point_2d pos, int width, int height, color clr) {
     Block block;
     block.pos = pos;
     block.width = width;
     block.height = height;
+    block.clr = clr;
     block.active = true;
     return block;
 }
@@ -840,22 +852,6 @@ Block new_block(point_2d pos, ivec2 grid_pos, int width, int height, color clr) 
 The `grid_pos` member stores the row and column position of the block within the grid.
 With this understanding of the grid system and block positioning, let's proceed to update the GameState struct and implement the state update functions.
 
-### Updating the GameState Struct
-We'll update the GameState struct in the types.h file to include vectors for the balls and terrain, as well as our player `Paddle`.
-
-**types.h**
-```cpp
-// ...other types
-
-struct GameState {
-    int score;
-    GameStatus game_status;
-    Paddle paddle;
-    std::vector<Ball> balls;
-    Grid terrain;
-};
-```
-
 # Populating the Grid
 
 For now, we'll just write a function to return a fully populated `Grid`. Later we'll extend this to be more dynamic but right now we just want to get something on the screen.
@@ -886,15 +882,474 @@ Grid new_grid() {
 }
 ```
 
-
-
-
-
-
-
 Now that we have our entities defined and initialisation functions set up, we can move on to updating the game state and looping back to the event loop.
 We will implement very basic state updates in the next section so that we can get something happening on screen, and then move on to more complex interactions and game logic.
 
+# Updating State and Looping Back
 
+
+### Updating the GameState Struct
+Let's update the GameState struct in the types.h file to include vectors for the balls and terrain, as well as our player `Paddle`. We'll also forward declare our main types so that we can refer to them in this file before they're defined.
+
+**types.h**
+```cpp
+#include <memory>
+#include <vector>
+#include "splashkit.h"
+
+struct ivec2;
+struct GameState;
+struct Paddle;
+struct Ball;
+struct Block;
+
+// ...other types
+
+struct GameState {
+    int score;
+    GameStatus game_status;
+    Paddle paddle;
+    std::vector<Ball> balls;
+    Grid terrain;
+};
+```
+
+With our game entities defined and initialisation functions set up, we can now focus on updating the game state and looping back to the event loop.
+
+### Updating the GameState
+
+We need a function to initialise a new GameState instance with default values. Let's add this function in the state_init.h file.
+
+**state_init.h**
+```cpp
+// ...other declarations
+GameState new_game_state();
+```
+
+**state_init.cpp**
+```cpp
+// ...rest of file
+GameState new_game_state() {
+    GameState game;
+    game.score = 0;
+    game.game_status = PLAYING;
+    game.terrain = new_grid();
+    game.paddle = new_paddle();
+    game.balls = {};
+    return game;
+}
+```
+
+This function creates a new `GameState` instance, initialises the score to 0, sets the game status to PLAYING, creates a new grid of blocks, initialises the paddle, and leaves the balls vector empty (we'll add balls later).
+
+### Declaring update functions
+
+Let's make a new header file:
+**state_management.h**
+```cpp
+#pragma once
+
+#include "types.h"
+
+// GLOBAL
+void update_global_state(GameState& g);
+
+
+// BLOCK
+void block_update(Block& b, GameState& g);
+
+// TERRAIN BLOCKS
+void update_terrain(GameState& g);
+
+
+//BALL
+void ball_update(Ball& b, GameState& g);
+
+void ball_check_wall_collision(Ball& b);
+
+void ball_check_block_collision(Ball& b, GameState& g);
+
+void ball_check_paddle_collision(Ball& b, GameState& g);
+
+void update_balls(GameState& g);
+
+
+// PADDLE
+void paddle_update(GameState& g);
+```
+
+In this file, we declare functions to update the paddle, balls, blocks (terrain), and the global game state. We also have ball functions to check for collisions with the walls, blocks, and paddle which we need to call in the ball update function.
+
+### Implementing update functions
+
+Let's quickly scaffold these functions then circle back and populate them one at a time:
+
+**paddle_state.cpp**
+```cpp
+#include "state_management.h"
+#include "globals.h"
+
+void paddle_update(GameState& g) {
+    // Update paddle position based on user input
+    // (to be implemented)
+}
+```
+
+**ball_state.cpp**
+```cpp
+#include "state_management.h"
+#include "globals.h"
+
+void ball_update(Ball& b, GameState& g) {
+    if (!b.active) {
+        return;
+    }
+
+    // Update ball position
+    b.pos.x += b.vel.x;
+    b.pos.y += b.vel.y;
+
+    // Check for collisions
+    ball_check_wall_collision(b);
+    ball_check_block_collision(b, g);
+    ball_check_paddle_collision(b, g);
+}
+
+void ball_check_wall_collision(Ball& b) {
+    // Check for collision with walls and update velocity accordingly
+    // (to be implemented)
+}
+
+void ball_check_block_collision(Ball& b, GameState& g) {
+    // Check for collision with blocks and update block state and ball velocity
+    // (to be implemented)
+}
+
+void ball_check_paddle_collision(Ball& b, GameState& g) {
+    // Check for collision with paddle and update ball velocity
+    // (to be implemented)
+}
+
+void update_balls(GameState& g) {
+    for (auto& ball : g.balls) {
+        ball_update(ball, g);
+    }
+
+    // Remove inactive balls from the vector
+    g.balls.erase(std::remove_if(g.balls.begin(), g.balls.end(), [](const Ball& b) { return !b.active; }), g.balls.end());
+}
+```
+
+The pattern here where we pass the game state by reference to each function is important, it allows us to update the game state in a controlled and predictable way. We will be able to see exactly what is being updated and when, and we can easily add new functionality by adding new functions which take the game state as an argument.
+
+The other pattern to note is `update_balls` which iterates over the balls in the game state and calls `ball_update` on each one. This is a common pattern in game development, where you have a collection of entities which need to be updated in the same way each frame.
+
+**block_state.cpp**
+```cpp
+#include "state_management.h"
+#include "globals.h"
+
+void block_update(Block& b, GameState& g) {
+   if (!b.active) {
+        return;
+    }
+
+    // Update block state
+    // (to be implemented)
+}
+
+void update_terrain(GameState& g) {
+    // Update each block
+    for (auto& row : g.terrain) {
+        for (auto& block : row) {
+            if (block) {
+                block_update(*block, g);
+                if (!block->active) {
+                    block.reset(); // Automatically deletes the block and sets the pointer to nullptr
+                }
+            }
+        }
+    }
+}
+```
+
+At this point it is natural to be wondering what the purpose of the `active` property is when we could just destroy the object when it is no longer needed. This is an order of operations consideration; imagine we have a collision which destroys a block and spawns a powerup, we want to be able to update the block state and then spawn the powerup in the same frame. By setting the block to inactive we can ensure that the block is not drawn or updated, but we can still access its properties and use them to spawn a powerup (or particles or whatever) before we delete the block (so we can still access its position etc even after it stops being part of the game).
+
+So where we have the check: `if (!b.active) return;` instead of returning we could call a function to spawn a powerup or particles or whatever, as `block_update()` is called before the block is deleted in `update_blocks()`.
+
+**global_state.cpp**
+```cpp
+#include "state_management.h"
+
+void update_global_state(GameState& g) {
+    paddle_update(g);
+    update_balls(g);
+    update_terrain(g);
+}
+```
+This function will be called in the main game loop to update the game state each frame. It calls the other update functions to update the paddle, balls, and blocks.
+
+Now let's fill in the missing code in the update functions and explain what's happening in each one.
+
+**paddle_state.cpp**
+```cpp
+#include "state_management.h"
+#include "globals.h"
+
+void paddle_update(GameState& g) {
+    g.paddle.pos.x = clamp((int) mouse_x(), GAME_AREA_START, GAME_AREA_END - g.paddle.width);
+}
+```
+In the `paddle_update` function, we update the paddle's position based on the mouse's x-coordinate. We use the `clamp` function from util.h to ensure that the paddle stays within the game area's boundaries, taking into account the paddle's width.
+
+When we talk about taking in to account the paddle's width, it's important to mention that in Splashkit (and many other graphical frameworks) the origin of a rectangle is its top-left corner. This means that when we draw a rectangle at a given position, the position refers to the top-left corner of the rectangle. This is important to remember when calculating the position of the paddle, as we need to ensure that the entire paddle is within the game area.
+
+In this situation, we are setting the x-coordinate of the paddle to the mouse's x-coordinate, but we also need to ensure that the entire paddle is within the game area. To do this, we use the `clamp` function to ensure that the paddle's x-coordinate is within the game area's boundaries, which means subtracting the paddle's width from the game area's end position (if the origin of the paddle is `paddle.width` away from the right edge of the game area, the right edge of the paddle will be at the right edge of the game area).
+
+![paddle width](tutorial_assets/paddle_boundary.gif)
+
+**ball_state.cpp**
+```cpp
+#include "state_management.h"
+#include "globals.h"
+
+void ball_update(Ball& b, GameState& g) {
+    if (!b.active) {
+        return;
+    }
+
+    // Update ball position
+    b.pos.x += b.vel.x;
+    b.pos.y += b.vel.y;
+
+    // Check for collisions
+    ball_check_wall_collision(b);
+    ball_check_block_collision(b, g);
+    ball_check_paddle_collision(b, g);
+}
+
+void ball_check_wall_collision(Ball& b) {
+    if (b.pos.y > GAME_AREA_HEIGHT) {
+        b.active = false;
+        return;
+    }
+    if (b.pos.x < GAME_AREA_START + b.size || b.pos.x > GAME_AREA_END - b.size - 1) {
+        b.pos.x = (b.pos.x < GAME_AREA_START + b.size) ? GAME_AREA_START + b.size : GAME_AREA_END - b.size - 1;
+        b.vel.x *= -1.;
+    }
+    if (b.pos.y < 0 + b.size) {
+        b.pos.y = 0 + b.size;
+        b.vel.y *= -1.;
+    }
+}
+
+void ball_check_block_collision(Ball& b, GameState& g) {
+    for (auto& row : g.terrain) {
+        for (auto& block : row) {
+            if (block && block->active) {
+                // Check for collision
+                if (b.pos.x < block->pos.x + block->width && b.pos.x + b.size > block->pos.x &&
+                    b.pos.y < block->pos.y + block->height && b.pos.y + b.size > block->pos.y) {
+                    block->active = false;
+                    g.score += 10;
+
+                    // Determine collision direction (which side of block was hit)
+                    float overlapLeft = (block->pos.x + block->width) - b.pos.x;
+                    float overlapRight = (b.pos.x + b.size) - block->pos.x;
+                    float overlapTop = (block->pos.y + block->height) - b.pos.y;
+                    float overlapBottom = (b.pos.y + b.size) - block->pos.y;
+
+                    bool x_overlap = std::min(overlapLeft, overlapRight) < std::min(overlapTop, overlapBottom);
+                    // Reverse velocity based on the smallest overlap
+                    if (x_overlap) {
+                        b.vel.x *= -1; // Horizontal collision
+                    } else {
+                        b.vel.y *= -1; // Vertical collision
+                    }
+                }
+            }
+        }
+    }
+}
+
+void ball_check_paddle_collision(Ball& b, GameState& g) {
+    if (b.pos.x < g.paddle.pos.x + g.paddle.width && b.pos.x + b.size > g.paddle.pos.x && b.pos.y >= g.paddle.pos.y) {
+        b.vel.y *= -1;
+        // adjust x velocity based on how close to centre of paddle the ball hits (further to edge = faster x rebound)
+        b.vel.x = map_value(b.pos.x - (g.paddle.pos.x + g.paddle.width / 2), 0, g.paddle.width / 2, 0, 5);
+    }
+}
+
+void update_balls(GameState& g) {
+    for (auto& ball : g.balls) {
+        ball_update(ball, g);
+    }
+
+    // Remove inactive balls from the vector
+    g.balls.erase(std::remove_if(g.balls.begin(), g.balls.end(), [](const Ball& b) { return !b.active; }), g.balls.end());
+}
+```
+In `ball_update`, we update the ball's position based on its velocity. We then check for collisions with the walls, blocks, and paddle using separate functions.
+
+`ball_check_wall_collision` checks if the ball has collided with any of the walls and reverses its velocity accordingly. If the ball goes below the game area, it is deactivated.
+
+`ball_check_block_collision` iterates through the terrain grid and checks if the ball has collided with any active blocks using AABB collision detection. If a collision is detected, the block is deactivated, and the ball's y-velocity is reversed.
+
+`ball_check_paddle_collision` checks if the ball has collided with the paddle and reverses its y-velocity. It also adjusts the ball's x-velocity based on the collision position using the map_value function from util.h.
+
+`update_balls` iterates through all the balls and calls ball_update for each one. It then removes any inactive balls from the vector using the erase-remove_if idiom.
+
+Our `Block` / terrain update functions are fine as-is for now.
+
+# Drawing the game
+
+Now let's implement the draw functions so we can see our game in action. We'll create a new header file called draw.h to declare our draw functions and implement them in a corresponding `draw.cpp` file.
+
+**draw.h**
+```cpp
+#include "types.h"
+
+void draw_global_state(const GameState& g);
+
+
+void block_draw(const Block& b);
+
+void draw_terrain(const GameState& g);
+
+
+void ball_draw(const Ball& b);
+
+void draw_balls(const GameState& g);
+
+void paddle_draw(const GameState& g);
+
+```
+
+**draw.cpp**
+```cpp
+#include "draw.h"
+#include "globals.h"
+
+void draw_global_state(const GameState& g) {
+    clear_screen(clr_background);
+    fill_rectangle(color_from_hex("#FBF6E0"), GAME_AREA_START - 3, 0, GAME_AREA_WIDTH + 6, GAME_AREA_HEIGHT - 3);
+    fill_rectangle(clr_background, GAME_AREA_START, 0, GAME_AREA_WIDTH, GAME_AREA_HEIGHT);
+    draw_text("score: " + std::to_string(g.score), COLOR_WHITE, 20, 20, option_to_screen());
+    draw_terrain(g);
+    paddle_draw(g);
+    draw_balls(g);
+}
+
+void block_draw(const Block& b) {
+    if (b.active) {
+        fill_rectangle(b.clr, b.pos.x, b.pos.y, b.width, b.height);
+    }
+}
+
+void draw_terrain(const GameState& g) {
+    for (const auto& row : g.terrain) {
+        for (const auto& block : row) {
+            if (block) {
+                block_draw(*block);
+            }
+        }
+    }
+}
+
+void ball_draw(const Ball& b) {
+    fill_circle(b.clr, b.pos.x, b.pos.y, b.size);
+}
+
+void draw_balls(const GameState& g) {
+    for (auto& b : g.balls) {
+        ball_draw(b);
+    }
+}
+
+void paddle_draw(const GameState& g) {
+    fill_rectangle(g.paddle.clr, g.paddle.pos.x, g.paddle.pos.y, g.paddle.width, g.paddle.height);
+}
+```
+In `draw_paddle`, we use the `fill_rectangle` function from SplashKit to draw the paddle based on its position, width, height, and color.
+
+`draw_ball` uses the `fill_circle` function to draw the ball based on its position, size, and color.
+
+`draw_block` uses the `fill_rectangle` function to draw a block based on its position, width, height, and color.
+
+`draw_terrain` iterates through the terrain grid and calls `draw_block` for each active block.
+
+Now is a good time to talk about draw ordering; if you draw one thing, and then draw something else on the same frame which overlaps the first thing, the second thing will be drawn on top of the first thing. This is important to remember when drawing things like the paddle and the balls, as the balls should be drawn on top of the paddle. We draw the balls last in the `draw_global_state` function so that they are drawn on top of everything else as the player needs visibility of the balls to play the game.
+
+You will also notice that after we clear the background we draw a rectangle which is slightly larger than the game area, this is to create a border around the game area which will help to visually separate the game area from the rest of the screen. We then draw a slightly smaller rectangle in the same position, in the color of the background to clear the game area, this is how we get a vertical border around the game area (as only the vertical edges of the second rectangle will be visible).
+
+# Finally drawing
+
+Now that we have our draw functions implemented, we can call them in the main game loop to draw the game entities on the screen.
+
+**program.cpp**
+```cpp
+#include "splashkit.h"
+#include "globals.h"
+#include "types.h"
+#include "state_init.h"
+#include "state_management.h"
+#include "draw.h"
+
+int main()
+{
+    open_window("BreakIn", WINDOW_WIDTH, WINDOW_HEIGHT);
+    hide_mouse();
+    GameState game = new_game_state();
+    while (!quit_requested())
+    {
+        process_events();
+        update_global_state(game);
+        draw_global_state(game);
+        refresh_screen(60);
+    }
+    close_window("BreakIn");
+    return 0;
+}
+```
+
+If all has gone well you should see something like this:
+![game screen](tutorial_assets/first_demo.png)
+
+Just one problem, we have no balls. Let's fix that.
+
+**program.cpp**
+```cpp
+#include "splashkit.h"
+#include "globals.h"
+#include "types.h"
+#include "state_init.h"
+#include "state_management.h"
+#include "draw.h"
+
+int main()
+{
+    open_window("BreakIn", WINDOW_WIDTH, WINDOW_HEIGHT);
+    hide_mouse();
+    GameState game = new_game_state();
+    while (!quit_requested())
+    {
+        process_events();
+        if (mouse_clicked(LEFT_BUTTON)) {
+            game.balls.push_back(
+                    new_ball({static_cast<double>(rng.randomInt(GAME_AREA_START, GAME_AREA_END)),
+                              static_cast<double>(GAME_AREA_HEIGHT - 100)}, {3, -3}, 3, clr_ball_standard)
+            );
+        }
+        update_global_state(game);
+        draw_global_state(game);
+        refresh_screen(60);
+    }
+    close_window("BreakIn");
+    return 0;
+}
+```
+With any luck you now see something like this:
+
+![game screen](tutorial_assets/first_demo.gif)
 
 

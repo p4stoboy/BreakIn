@@ -2,7 +2,7 @@
 
 #include <memory>
 #include <vector>
-#include "splashkit/splashkit.h"
+#include "splashkit.h"
 #include <functional>
 
 struct ivec2;

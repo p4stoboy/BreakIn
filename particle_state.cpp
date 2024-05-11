@@ -17,10 +17,6 @@ void particle_update(Particle& p) {
     p.size = static_cast<int>(p.original_size * (1.0f - (alpha/2.0f)));
 }
 
-void particle_draw(Particle& p) {
-    fill_circle(p.clr, p.pos.x, p.pos.y, p.size);
-}
-
 void update_particles(GameState& g) {
     for (auto& p : g.particles) {
         particle_update(p);
@@ -32,8 +28,3 @@ void update_particles(GameState& g) {
                       g.particles.end());
 }
 
-void draw_particles(GameState& g) {
-    for (auto& p : g.particles) {
-        particle_draw(p);
-    }
-}

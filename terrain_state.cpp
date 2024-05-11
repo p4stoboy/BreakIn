@@ -84,26 +84,9 @@ void update_terrain(GameState& g) {
         for (auto& block : row) {
             if (block) {
                 block_update(*block, g);
-            }
-        }
-    }
-
-    // Remove destroyed blocks
-    for (auto& row : g.terrain) {
-        for (auto& block : row) {
-            if (block && !block->active) {
-                block.reset(); // Automatically deletes the block and sets the pointer to nullptr
-            }
-        }
-    }
-}
-
-
-void draw_terrain(GameState& g) {
-    for (const auto& row : g.terrain) {
-        for (const auto& block : row) {
-            if (block) {
-                block_draw(*block);
+                if (!block->active) {
+                    block.reset(); // Automatically deletes the block and sets the pointer to nullptr
+                }
             }
         }
     }

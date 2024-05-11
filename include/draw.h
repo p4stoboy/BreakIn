@@ -1,5 +1,11 @@
 #include "types.h"
 
+/**
+ * @brief Draw the global state of the game.
+ * @param g The game state.
+ */
+void draw_global_state(const GameState& g);
+
 
 /**
  * @brief Draw the block.
@@ -13,7 +19,7 @@ void block_draw(const Block& b);
  *
  * @param g The game state.
  */
-void draw_terrain(GameState& g);
+void draw_terrain(const GameState& g);
 
 
 
@@ -22,21 +28,21 @@ void draw_terrain(GameState& g);
  *
  * @param b The ball to draw.
  */
-void ball_draw(Ball& b);
+void ball_draw(const Ball& b);
 
 /**
  * @brief Draw the balls in the game.
  *
  * @param g The game state.
  */
-void draw_balls(GameState& g);
+void draw_balls(const GameState& g);
 
 /**
  * @brief Draw the ball's trail.
  *
  * @param b The ball to draw the trail for.
  */
-void trail_draw(Ball& b);
+void trail_draw(const Ball& b);
 
 
 
@@ -45,7 +51,7 @@ void trail_draw(Ball& b);
  *
  * @param g The game state.
  */
-void paddle_draw(GameState& g);
+void paddle_draw(const GameState& g);
 
 
 
@@ -54,11 +60,11 @@ void paddle_draw(GameState& g);
  *
  * @param p The particle to draw.
  */
-void particle_draw(Particle& p);
+void particle_draw(const Particle& p);
 
 /**
  * @brief Draw the particles in the game.
  *
  * @param g The game state.
  */
-void draw_particles(GameState& g);
+void draw_particles(const GameState& g);
