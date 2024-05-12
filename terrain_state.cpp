@@ -2,7 +2,6 @@
 #include "include/terrain_patterns.h"
 #include "include/globals.h"
 #include <stack>
-#include "include/draw.h"
 
 
 int count_non_empty_rows(GameState& g) {

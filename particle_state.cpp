@@ -1,8 +1,4 @@
 #include "include/state_management.h"
-#include "splashkit.h"
-#include <algorithm>
-#include "include/draw.h"
-
 
 void particle_update(Particle& p) {
     p.vel.y += 0.1;

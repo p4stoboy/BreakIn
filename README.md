@@ -4,6 +4,8 @@ ___
 
 # BreakIn: A Game Development Tutorial
 
+![BreakIn](tutorial_assets/title.gif)
+
 #### Table of Contents
 
 - **[Introduction](#introduction)**
@@ -39,9 +41,13 @@ ___
 - **[Drawing the Game](#drawing-the-game)**
     - Implementing draw functions for game entities
     - Rendering the game state on the screen
-- **[Physics and Terrain Generation](#physics-and-terrain-generation)**
-    - Implementing basic physics for movement and collision
-    - Generating dynamic terrain for gameplay
+- **[Making the Terrain Endless](#making-the-terrain-endless)**
+    - Implementing DFS culling to remove disconnected blocks
+    - Adding velocity to blocks for smooth transition
+- **[Particles](#particles)**
+    - Creating a particle type
+    - Implementing particle updates and drawing
+    - Spawning particles on block destruction
 - **[Juice, Particles, and Color](#juice-particles-and-color)**
     - Enhancing the game with visual effects
     - Adding particle systems for dynamic interactions
@@ -68,18 +74,19 @@ To begin, ensure you have the necessary tools and libraries installed:
 
 3. **IDE:** While not mandatory, an Integrated Development Environment (IDE) like Visual Studio Code or CLion (Jetbrains) can streamline your development process.
 
-Once you have the environment set up, clone the BreakIn repository to your local machine and compile it:
+Once you have the environment set up, initialise a new Spashkit project:
 
+Make the project folder and navigate to it:
 ```bash
-git clone https://github.com/p4stoboy/Generative-Breakout.git
+mkdir BreakIn
+cd BreakIn
+```
+Then initialise a new Splashkit project:
+```bash
+skm new c++
 ```
 
-```bash
-cd Generative-Breakout
-smk g++ *.cpp -o game
-```
-
-Run the compiled executable to ensure everything is working correctly. You should see the game window open to the menu. Congratulations, you're now ready to dive into the development of BreakIn!
+Open the project in your IDE.
 
 # The Event Loop
 
@@ -94,6 +101,10 @@ The main game loop is a fundamental paradigm that drives game execution. It enco
 - **Render**: Drawing the visual representation of the current game state onto the screen.
 
 Each iteration of the loop is a snapshot, a single frame in the game's lifespan. As such, it must be both efficient and comprehensive to maintain the illusion of continuity.
+
+Here's a diagram demonstrating a single iteration of the game loop / state management flow we are going ot implement; it demonstrates distinct separation of concerns around management of discrete state and rendering patterns:
+
+![game loop](tutorial_assets/state_diagram.png)
 
 ## Event Handling and Game Flow
 
@@ -118,10 +129,10 @@ int main()
         process_events();
 
         // Update game state values (we will implement this routine ourselves)
-        update_game_state();
+        update_global_state(gamestate);
 
         // Draw to frame buffer (we will also implement this)
-        draw_game();
+        draw_global_state(gamestate);
 
         // Refresh at target frames per second
         refresh_screen(60);
@@ -142,8 +153,6 @@ Within this loop, you will integrate logic to react to keyboard strokes, mouse m
 ---
 
 This section establishes the importance of the event loop and provides a foundation against which we can start designing implementations. In the following sections, we will populate this loop with the functionality described above.
-
-Section 3 will focus on how to effectively manage the global state of the game. This includes organizing the different states that your game can be in (such as menu, playing, paused, or ended), as well as the state of game object instances like the player / anything else which has mutable properties, and how these states are maintained and transitioned between as the game progresses.
 
 We will explore creating a structured and easily manageable state system, incorporating conventions which enforce composable and extendable code. We'll examine how to encapsulate the game state, manage transitions, and effectively control game flow.
 
@@ -268,8 +277,8 @@ template<typename T, size_t N>
 inline T XOR::choose(const T (&arr)[N]) {
     return arr[randomInt(0, N - 1)];
 }
-
 ```
+
 This looks complex but it's a simple declaration for an [XORShift](https://en.wikipedia.org/wiki/Xorshift) PRNG, it's small and has a very good period (the number of unique values it can generate before repeating) for a 32-bit PRNG. It is a perfectly simple interface for our purposes.
 
 **Why not use an inbuilt C++ prng?**
@@ -483,10 +492,10 @@ int main()
         process_events();
 
         // Update game state values (we will implement this routine ourselves)
-        update_game_state();
+        update_global_state(gamestate);
 
         // Draw to frame buffer (we will also implement this)
-        draw_game();
+        draw_global_state(gamestate);
 
         // Refresh at target frames per second
         refresh_screen(60);
@@ -1353,3 +1362,568 @@ With any luck you now see something like this:
 ![game screen](tutorial_assets/first_demo.gif)
 
 
+# Making the terrain endless
+
+Now that we have a basic game loop set up, we can start adding more features to the game. One of the first things we can do is make the terrain endless by adding a scrolling effect.
+
+We also want to destroy any blocks that do not have a valid path to the top of the screen (they have been fully disconnected from the main terrain body).
+![endless terrain](tutorial_assets/DFS.png)
+
+### DFS Culling
+
+We will implement a Depth-First Search (DFS) algorithm to check if a block is connected to the top `Row` in our terrain. The DFS algorithm will start from the top row of the grid and traverse the terrain to find connected blocks. If a block is not connected to the top row, it will be deactivated.
+
+**state_management.h**
+```cpp
+// ...other declarations
+
+/**
+ * @brief Count the number of non-empty rows in the terrain.
+ *
+ * @param g The game state.
+ * @return int The number of non-empty rows.
+ */
+int count_non_empty_rows(GameState& g);
+
+/**
+ * @brief Shift the rows in the terrain down by the given number of rows.
+ *
+ * @param g The game state.
+ * @param num_rows_to_shift The number of rows to shift.
+ */
+void shift_rows_down(GameState& g, int num_rows_to_shift);
+
+/**
+ * @brief Add a new chunk of terrain to the game.
+ *
+ * @param g The game state.
+ * @param num_rows The number of rows in the chunk.
+ */
+void add_new_chunk(GameState& g, int num_rows);
+
+/**
+ * @brief Uses dfs_mark_reachable() to check if blocks are not connected to top row (have been shaved off main body of terrain)
+ * and deactivates them.
+ *
+ * @param g The game state.
+ */
+void deactivate_disconnected_clusters(GameState& g);
+
+/**
+ * @brief Uses DFS to mark blocks that are reachable from the top row.
+ *
+ * @param g The game state.
+ * @param row The row to start the search from.
+ * @param col The column to start the search from.
+ * @param visited The visited array.
+ */
+void dfs_mark_reachable(GameState& g, int row, int col, std::vector<std::vector<bool>>& visited);
+```
+
+First declare this set of new functions in `state_management.h`.
+
+And then define them in a new file:
+
+**terrain_state.cpp**
+```cpp
+void dfs_mark_reachable(GameState& g, int row, int col, std::vector<std::vector<bool>>& visited) {
+    std::stack<std::pair<int, int>> stack;
+    stack.push({row, col});
+
+    while (!stack.empty()) {
+        auto pair = stack.top();
+        int r = pair.first;
+        int c = pair.second;
+        stack.pop();
+
+        if (r < 0 || r >= g.terrain.size() || c < 0 || c >= g.terrain[r].size() || !g.terrain[r][c] || visited[r][c]) {
+            continue;
+        }
+
+        visited[r][c] = true;
+
+        // Check adjacent blocks
+        stack.push({r - 1, c}); // above
+        stack.push({r + 1, c}); // below
+        stack.push({r, c - 1}); // left
+        stack.push({r, c + 1}); // right
+    }
+}
+```
+This function uses a [Depth-First Search (DFS)](https://en.wikipedia.org/wiki/Depth-first_search) algorithm to mark blocks that are reachable from the top row of the terrain. It starts from a given row and column position and traverses the terrain to find connected blocks.
+
+The last argument is a reference to a 2D vector of boolean values called `visited`. This vector is used to keep track of visited blocks during the DFS traversal.
+
+Once the function returns, the visited vector will be updated with the blocks that are reachable from the top row, and so we can refer to it to determine which blocks to deactivate.
+
+```cpp
+void deactivate_disconnected_clusters(GameState& g) {
+    std::vector<std::vector<bool>> visited(NUM_ROWS, std::vector<bool>(NUM_COLS, false));
+
+    // Mark all reachable blocks starting from the top row
+    for (int col = 0; col < NUM_COLS; ++col) {
+        if (g.terrain[0][col]) {
+            dfs_mark_reachable(g, 0, col, visited);
+        }
+    }
+
+    // Deactivate all unvisited (disconnected) blocks
+    for (int row = 0; row < NUM_ROWS; ++row) {
+        for (int col = 0; col < NUM_COLS; ++col) {
+            if (g.terrain[row][col] && !visited[row][col]) {
+                g.terrain[row][col]->active = false;
+            }
+        }
+    }
+}
+```
+
+This function calls our DFS and then deactivates any blocks which were not visited during the traversal.
+
+```cpp
+int count_non_empty_rows(GameState& g) {
+    int non_empty_rows = 0;
+    for (const auto& row : g.terrain) {
+        if (std::any_of(row.begin(), row.end(), [](const std::unique_ptr<Block>& block) { return block != nullptr; })) {
+            ++non_empty_rows;
+        }
+    }
+    return non_empty_rows;
+}
+
+void shift_rows_down(GameState& g, int num_rows_to_shift) {
+    if (num_rows_to_shift <= 0) return;
+
+    // Shift rows down
+    for (int y = g.terrain.size() - 1; y >= num_rows_to_shift; --y) {
+        g.terrain[y] = std::move(g.terrain[y - num_rows_to_shift]);
+        for (auto &block : g.terrain[y]) {
+            if (block) {
+                // block->target_pos.y += BLOCK_HEIGHT * num_rows_to_shift;
+                block->pos.y += BLOCK_HEIGHT * num_rows_to_shift;
+                block->grid_pos.y += num_rows_to_shift;
+            }
+        }
+    }
+    // Clear the top rows
+    for (int y = 0; y < num_rows_to_shift; ++y) {
+        for (auto &block : g.terrain[y]) {
+            block.reset(); // Set each element to nullptr
+        }
+    }
+}
+```
+
+These functions are used to count the number of non-empty rows in the terrain and shift the rows down by a given number of rows.
+
+```cpp
+void add_new_chunk(GameState& g, int num_rows) {
+    // Add new rows at the top
+    for (int y = 0; y < num_rows; ++y) {
+        Row new_row;
+        for (int x = 0; x < NUM_COLS; ++x) {
+            point_2d pos = {static_cast<double>(TERRAIN_OFFSET + x * BLOCK_WIDTH), static_cast<double>(y * BLOCK_HEIGHT)};
+            // point_2d target_pos = {pos.x, static_cast<double>(y * BLOCK_HEIGHT)};
+            ivec2 grid_pos = {x, y};
+            new_row.push_back(std::make_unique<Block>(new_block(pos, grid_pos, BLOCK_WIDTH, BLOCK_HEIGHT, clr_block)));
+        }
+        g.terrain[y] = std::move(new_row);
+    }
+}
+```
+Finally, this function adds a new chunk of terrain to the game by creating new rows at the top of the terrain grid after we shift the remaining rows down.
+
+Once we have added these functions to our new source file, we will remove `update_terrain` from `block_state.cpp` and redefine it in `terrain_state.cpp` as follows:
+
+```cpp
+#include "state_management.h"
+#include "globals.h"
+#include "state_init.h"
+#include <stack>
+
+// ..other definitions
+
+void update_terrain(GameState& g) {
+    // Check if the bottom row is completely empty
+    // if it isn't then we don't need to shift or add any blocks
+    bool bottom_row_empty = true;
+    for (auto& block : g.terrain.back()) {
+        if (block) {
+            bottom_row_empty = false;
+            break;
+        }
+    }
+
+    // Shift rows down and add new rows at the top if the bottom row is empty
+    if (bottom_row_empty) {
+        int non_empty_rows = count_non_empty_rows(g);
+        int num_rows_to_shift = NUM_ROWS - non_empty_rows;
+
+        if (num_rows_to_shift > 0) {
+            shift_rows_down(g, num_rows_to_shift);
+            add_new_chunk(g, num_rows_to_shift);
+        }
+    }
+
+    // Deactivate disconnected clusters
+    deactivate_disconnected_clusters(g);
+
+    // Update each block
+    for (auto& row : g.terrain) {
+        for (auto& block : row) {
+            if (block) {
+                block_update(*block, g);
+                if (!block->active) {
+                    block.reset(); // Automatically deletes the block and sets the pointer to nullptr
+                }
+            }
+        }
+    }
+}
+```
+
+With any luck your terrain is now behaving like this as rows are cleared (ignore my debug mouse destruction):
+
+![endless terrain](tutorial_assets/cull.gif)
+
+### Velocity and making it feel nice
+
+This is cool but it's a bit jarring when the terrain shifts, let's add a little animation to make it feel a bit smoother.
+
+To do this, we're going to give blocks 2 new properties:
+
+`block.target_pos` - the screen position we want the block to land at.
+
+`block.y_vel` - the speed at which the block is moving towards its target position (blocks will only shift vertically so we only need a y velocity).
+
+**types.h**
+```cpp
+struct Block {
+    bool active;
+    point_2d pos;
+    point_2d target_pos;
+    ivec2 grid_pos;
+    int width;
+    int height;
+    color clr;
+    float y_vel;
+};
+```
+
+**state_init.h**
+```cpp
+Block new_block(point_2d pos, point_2d target_pos, ivec2 grid_pos, int width, int height, color c);
+```
+
+**state_init.cpp**
+```cpp
+Block new_block(point_2d pos, point_2d target_pos, ivec2 grid_pos, int width, int height, color c) {
+    Block block;
+    block.pos = pos;
+    block.target_pos = target_pos;
+    block.grid_pos = grid_pos;
+    block.width = width;
+    block.height = height;
+    block.clr = c;
+    block.active = true;
+    block.y_vel = 0.0;
+    return block;
+}
+
+Grid new_grid() {
+    Grid grid;
+    for (int y = 0; y < NUM_ROWS; ++y) {
+        Row row;
+        for (int x = 0; x < NUM_COLS; ++x) {
+            point_2d pos = {static_cast<double>(TERRAIN_OFFSET + x * BLOCK_WIDTH), static_cast<double>(y * BLOCK_HEIGHT)};
+            ivec2 grid_pos = {x, y};
+            row.push_back(std::make_unique<Block>(new_block(pos, pos, grid_pos, BLOCK_WIDTH, BLOCK_HEIGHT, clr_block)));
+        }
+        grid.push_back(std::move(row));
+    }
+    return grid;
+}
+```
+
+When creating a new block, we now need to provide both the initial position (`pos`) and the target position (`target_pos`).
+
+In the `new_grid` function we need to set the `target_pos` of each block to match its initial position.
+
+**block_state.cpp**
+```cpp
+void block_update(Block& b, GameState& g) {
+    if (!b.active) {
+        return;
+    }
+
+    // Move the block towards its target position
+    if (b.pos.y < b.target_pos.y) {
+        b.y_vel += 0.1f; // Increase the vertical velocity
+        b.pos.y += b.y_vel;
+        if (b.pos.y >= b.target_pos.y) {
+            b.pos.y = b.target_pos.y;
+            b.y_vel = 0.0f; // Reset the vertical velocity when the block reaches its target position
+        }
+    }
+}
+```
+
+In the `block_update` function, we update the block's position based on its target position and vertical velocity. The block moves towards its target position by increasing its vertical velocity until it reaches the target position.
+
+Finally:
+
+**terrain_state.cpp**
+```cpp
+void shift_rows_down(GameState& g, int num_rows_to_shift) {
+    if (num_rows_to_shift <= 0) return;
+
+    // Shift rows down
+    for (int y = g.terrain.size() - 1; y >= num_rows_to_shift; --y) {
+        g.terrain[y] = std::move(g.terrain[y - num_rows_to_shift]);
+        for (auto &block : g.terrain[y]) {
+            if (block) {
+                block->target_pos.y += BLOCK_HEIGHT * num_rows_to_shift;
+                block->grid_pos.y += num_rows_to_shift;
+            }
+        }
+    }
+    // Clear the top rows
+    for (int y = 0; y < num_rows_to_shift; ++y) {
+        for (auto &block : g.terrain[y]) {
+            block.reset(); // Set each element to nullptr
+        }
+    }
+}
+
+void add_new_chunk(GameState& g, int num_rows) {
+    // Add new rows at the top
+    for (int y = 0; y < num_rows; ++y) {
+        Row new_row;
+        for (int x = 0; x < NUM_COLS; ++x) {
+            point_2d pos = {static_cast<double>(TERRAIN_OFFSET + x * BLOCK_WIDTH), 0.0f};
+            point_2d target_pos = {pos.x, static_cast<double>(y * BLOCK_HEIGHT)};
+            ivec2 grid_pos = {x, y};
+            new_row.push_back(std::make_unique<Block>(new_block(pos, target_pos, grid_pos, BLOCK_WIDTH, BLOCK_HEIGHT, clr_block)));
+        }
+        g.terrain[y] = std::move(new_row);
+    }
+}
+```
+
+In `add_new_chunk` we set the initial `pos.y` of each block to 0 and the `target_pos.y` to the row number multiplied by the block height. This will make the blocks appear to slide down from the top of the screen when they are added to the terrain.
+
+in `shift_rows_down` we no longer set the `pos.y` of each block to the target position, instead we increase the `target_pos.y` by the block height multiplied by the number of rows to shift. This will make the blocks slide down to their new positions when the terrain is shifted.
+
+Your terrain should now be moving like this as we cull it:
+
+![smooth terrain](tutorial_assets/block_vel.gif)
+
+This is starting to feel okay - let's add some more juice.
+
+# Particles
+
+We're going to add some particles to the game to make it feel more dynamic and exciting. We'll create a new particle type and implement a particle system against the `GameState` to manage the particles.
+
+**note:** implementing particles on the cpu like this is generally not a great pattern; it's slow and not very scalable. For a computationally intense game you would want to use the GPU to handle particles, but for our purposes this is fine.
+We will simply ensure we don't create too many and that they are culled quickly.
+
+### Particle Type
+In `types.h` add a new struct for the particle type and extend `GameState` to store some particles:
+
+**types.h**
+```cpp
+struct Particle {
+    point_2d pos;
+    vector_2d vel;
+    int size;
+    color clr;
+    int ttl;
+    int max_ttl;
+    int original_size;
+};
+
+struct GameState {
+    int score;
+    GameStatus game_status;
+    Paddle paddle;
+    std::vector<Ball> balls;
+    Grid terrain;
+    std::vector<Particle> particles;
+};
+```
+`ttl` is how many frames the particle should exist for, it is decremented each frame.
+
+`max_ttl` is the initial ttl value, we will use this to determine the particle's alpha value based on how long it has been alive.
+
+`original_size` is the initial size of the particle, we will **can** use this to determine the particle's size based on how long it has been alive.
+
+In `state_init.h` add a function to create a new particle:
+
+**state_init.h**
+```cpp
+Particle new_particle(point_2d pos, vector_2d vel, color clr, int size, int ttl);
+```
+And in `state_init.cpp` implement this function:
+
+**state_init.cpp**
+```cpp
+Particle new_particle(point_2d pos, vector_2d vel, color clr, int size, int ttl) {
+    Particle particle;
+    particle.pos = pos;
+    particle.vel = vel;
+    particle.size = size;
+    particle.clr = clr;
+    particle.ttl = ttl;
+    particle.max_ttl = ttl;
+    particle.original_size = size;
+    return particle;
+}
+```
+
+In `state_management.h` declare functions to update the particles:
+
+**state_management.h**
+```cpp
+void particle_update(Particle& p);
+void update_particles(GameState& g);
+```
+
+And in a new file - `particle_state.cpp` - implement these functions:
+
+**particle_state.cpp**
+```cpp
+#include "state_management.h"
+#include "globals.h"
+
+void particle_update(Particle& p) {
+    p.vel.y += 0.2;
+    p.pos.x += p.vel.x;
+    p.pos.y += p.vel.y;
+    p.ttl--;
+
+    // Increase opacity based on the remaining ttl
+    float alpha = 1.0f - (static_cast<float>(p.ttl) / static_cast<float>(p.max_ttl));
+    p.clr.a = static_cast<uint8_t>(alpha * 255);
+    // Decrease size based on the remaining ttl
+    p.size = static_cast<int>(p.original_size * (1.0f - (alpha/2.0f)));
+}
+
+void update_particles(GameState& g) {
+    for (auto& p : g.particles) {
+        particle_update(p);
+    }
+
+    // Remove dead particles
+    g.particles.erase(std::remove_if(g.particles.begin(), g.particles.end(),
+                                     [](const Particle& p) { return p.ttl <= 0 || p.pos.y > WINDOW_HEIGHT; }),
+                      g.particles.end());
+}
+```
+
+In `particle_update` we update the particle's position based on its velocity and decrease its ttl. We also adjust the particle's alpha value and size based on the remaining ttl.
+
+By setting the velocity increase per frame to be quite large, and culling the particles once they reach the bottom of the screen, we can help address performance concerns.
+
+The other condition to cull particles is if their ttl reaches 0 (at which point they should be fully transparent).
+
+### Drawing Particles
+
+In `draw.h` declare functions to draw the particles:
+
+**draw.h**
+```cpp
+void particle_draw(const Particle& p);
+void draw_particles(const GameState& g);
+```
+
+And in `draw.cpp` implement these functions:
+
+**draw.cpp**
+```cpp
+void particle_draw(const Particle& p) {
+    fill_circle(p.clr, p.pos.x, p.pos.y, p.size);
+}
+
+
+void draw_particles(const GameState& g) {
+    for (auto& p : g.particles) {
+        particle_draw(p);
+    }
+}
+```
+
+This is the same pattern we are using to update and draw all our other types!
+
+### Spawning Particles
+
+There are a lot of instances where we can use particles to add some visual flair and feedback to the game, for now let's just create some when a block is destroyed:
+
+**state_management.h**
+```cpp
+void block_destroy(const Block& b, GameState& g);
+```
+Remember when we said we could use the `active` property to stop objects being drawn or updated but still access their properties? This is where that comes in handy.
+
+**block_state.cpp**
+```cpp
+//.. other includes
+#include "state_init.h"
+
+void block_update(Block& b, GameState& g) {
+    if (!b.active) {
+        block_destroy(b, g);
+        return;
+    }
+
+    // Move the block towards its target position
+    if (b.pos.y < b.target_pos.y) {
+        b.y_vel += 0.1f; // Increase the vertical velocity
+        b.pos.y += b.y_vel;
+        if (b.pos.y >= b.target_pos.y) {
+            b.pos.y = b.target_pos.y;
+            b.y_vel = 0.0f; // Reset the vertical velocity when the block reaches its target position
+        }
+    }
+}
+
+void block_destroy(const Block& b, GameState& g) {
+    ++g.score;
+    for (int i = 0; i < 2; ++i) {
+        vector_2d particle_vel = {rng.randomFloat(-2.0f, 2.0f), rng.randomFloat(2.0f, 0.0f)}; // can't have upward trajectory
+        g.particles.push_back(new_particle(b.pos, particle_vel, b.clr, rng.randomInt(1,2), 90));
+    }
+}
+```
+Instead of simply returning when a block is not active, we now call `block_destroy` which increments the player's score and creates 2 particles at the block's position with random velocities and sizes.
+
+Remember to remove the score increment from `ball_check_block_collision` in `ball_state.cpp` as we are now incrementing the score when a block is destroyed (which means we can easily add `hitpoints` etc to blocks now without messing up our scoring logic).
+
+Finally - we need to update and draw the particles in the main game loop:
+
+**global_state.cpp**
+```cpp
+void update_global_state(GameState& g) {
+    update_particles(g);
+    paddle_update(g);
+    update_balls(g);
+    update_terrain(g);
+}
+```
+
+**draw.cpp**
+```cpp
+void draw_global_state(const GameState& g) {
+    clear_screen(clr_background);
+    fill_rectangle(color_from_hex("#FBF6E0"), GAME_AREA_START - 3, 0, GAME_AREA_WIDTH + 6, GAME_AREA_HEIGHT - 3);
+    fill_rectangle(clr_background, GAME_AREA_START, 0, GAME_AREA_WIDTH, GAME_AREA_HEIGHT);
+    draw_text("score: " + std::to_string(g.score), COLOR_WHITE, 20, 20, option_to_screen());
+    draw_particles(g);
+    draw_terrain(g);
+    paddle_draw(g);
+    draw_balls(g);
+}
+```
+
+And now we should be looking half decent:
+
+![particles](tutorial_assets/particle.gif)
