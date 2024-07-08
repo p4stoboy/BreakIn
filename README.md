@@ -1,8 +1,8 @@
-### Building Graphical Applications With Splashkit
+### Onboarding design template for Deakin Capstone Game Development Team
 
 ___
 
-# BreakIn: A Game Development Tutorial
+# BreakIn: A (Splashkit) Game Development Guide
 
 ![BreakIn](tutorial_assets/title.gif)
 
